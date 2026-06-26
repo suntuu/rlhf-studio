@@ -1,11 +1,28 @@
-import { Download, Eye, FileDown, X } from 'lucide-react'
+import { CheckCircle2, Download, Eye, FileDown, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { objectiveLabels } from '../data/demoData'
 import { exportCsv, exportJsonl } from '../lib/exporters'
-import { getAnnotations, getAnnotationsByProject, getProjectById, getProjects } from '../lib/storage'
-import type { AnnotationResult, ProjectConfig } from '../types'
-import { Badge, Button, EmptyState, LinkButton, MetricCard, PageHeader, Panel } from '../components/UI'
+import {
+  buildQualityExportRecords,
+  getQualityMetrics,
+  getTaskQualitySummaries,
+  isReadyForExport,
+  type TaskQualitySummary,
+} from '../lib/quality'
+import {
+  getAnnotations,
+  getAnnotationsByProject,
+  getProjectById,
+  getProjects,
+  getReviewDecisions,
+  saveReviewDecision,
+} from '../lib/storage'
+import { inputClass, textareaClass } from '../lib/styles'
+import type { AnnotationResult, ProjectConfig, ReviewFinalLabel, ReviewStatus } from '../types'
+import { Badge, Button, EmptyState, InlineEmptyState, LinkButton, MetricCard, PageHeader, Panel } from '../components/UI'
+
+type ExportScope = 'all' | 'ready'
 
 export function Results() {
   const { id } = useParams()
@@ -47,22 +64,30 @@ function ResultsIndex() {
             <h2 className="text-lg font-semibold text-neutral-950">Project result sets</h2>
           </div>
           <div className="divide-y divide-[#e2ded6]">
-            {projects.map((project) => {
-              const count = annotations.filter((annotation) => annotation.project_id === project.id).length
-              return (
-                <Link
-                  className="flex flex-col gap-3 p-5 transition hover:bg-[#f3f1eb] sm:flex-row sm:items-center sm:justify-between"
-                  key={project.id}
-                  to={`/projects/${project.id}/results`}
-                >
-                  <div>
-                    <p className="font-semibold text-neutral-950">{project.name}</p>
-                    <p className="mt-1 text-sm text-neutral-600">{count} records ready for export</p>
-                  </div>
-                  <Badge tone={count > 0 ? 'green' : 'slate'}>{count > 0 ? 'Has results' : 'Empty'}</Badge>
-                </Link>
-              )
-            })}
+            {projects.length === 0 ? (
+              <InlineEmptyState
+                title="No project result sets yet"
+                description="Create a project before reviewing export-ready preference records."
+                action={<LinkButton to="/projects/new" variant="primary">Create Project</LinkButton>}
+              />
+            ) : (
+              projects.map((project) => {
+                const count = annotations.filter((annotation) => annotation.project_id === project.id).length
+                return (
+                  <Link
+                    className="flex flex-col gap-3 p-5 transition hover:bg-[#f3f1eb] sm:flex-row sm:items-center sm:justify-between"
+                    key={project.id}
+                    to={`/projects/${project.id}/results`}
+                  >
+                    <div>
+                      <p className="font-semibold text-neutral-950">{project.name}</p>
+                      <p className="mt-1 text-sm text-neutral-600">{count} annotations collected</p>
+                    </div>
+                    <Badge tone={count > 0 ? 'green' : 'slate'}>{count > 0 ? 'Has results' : 'Empty'}</Badge>
+                  </Link>
+                )
+              })
+            )}
           </div>
         </Panel>
       </div>
@@ -72,27 +97,71 @@ function ResultsIndex() {
 
 function ProjectResults({ project }: { project: ProjectConfig }) {
   const [records, setRecords] = useState(() => getAnnotationsByProject(project.id))
+  const [reviewDecisions, setReviewDecisions] = useState(() => getReviewDecisions(project.id))
   const [selectedRecord, setSelectedRecord] = useState<AnnotationResult | null>(null)
+  const [selectedSummary, setSelectedSummary] = useState<TaskQualitySummary | null>(null)
+  const [exportScope, setExportScope] = useState<ExportScope>('all')
   const distribution = useMemo(() => getDistribution(records), [records])
-  const averageConfidence = useMemo(() => getAverageConfidence(records), [records])
+  const taskSummaries = useMemo(
+    () => getTaskQualitySummaries(records, reviewDecisions),
+    [records, reviewDecisions],
+  )
+  const qualityMetrics = useMemo(() => getQualityMetrics(records, taskSummaries), [records, taskSummaries])
+  const exportRecords = useMemo(() => buildQualityExportRecords(records, taskSummaries), [records, taskSummaries])
+  const selectedExportRecords = useMemo(
+    () =>
+      exportScope === 'ready'
+        ? exportRecords.filter(
+            (record) =>
+              record.review_status === 'accepted' ||
+              (record.review_status === 'approved' && record.reviewer_final_label !== 'discard'),
+          )
+        : exportRecords,
+    [exportRecords, exportScope],
+  )
+  const exportScopeFilename = exportScope === 'ready' ? 'approved-accepted-records' : 'all-records'
 
   function refreshRecords() {
     setRecords(getAnnotationsByProject(project.id))
+    setReviewDecisions(getReviewDecisions(project.id))
+  }
+
+  function refreshReviewDecisions() {
+    setReviewDecisions(getReviewDecisions(project.id))
   }
 
   return (
     <>
       <PageHeader
         title={`${project.name} results`}
-        description="Export-ready structured preference records."
+        description="Quality review helps prevent noisy human feedback from entering the training dataset."
         actions={
           <>
             <LinkButton to={`/annotate/${project.id}`}>Annotate</LinkButton>
-            <Button disabled={records.length === 0} onClick={() => exportJsonl(project.name, records)}>
+            <label className="min-w-56">
+              <span className="sr-only">Export scope</span>
+              <select
+                aria-label="Export scope"
+                className={inputClass}
+                onChange={(event) => setExportScope(event.target.value as ExportScope)}
+                value={exportScope}
+              >
+                <option value="all">Export all records</option>
+                <option value="ready">Export approved / accepted records only</option>
+              </select>
+            </label>
+            <Button
+              disabled={selectedExportRecords.length === 0}
+              onClick={() => exportJsonl(project.name, selectedExportRecords, exportScopeFilename)}
+            >
               <Download size={16} aria-hidden="true" />
               Export JSONL
             </Button>
-            <Button disabled={records.length === 0} onClick={() => exportCsv(project.name, records)} variant="primary">
+            <Button
+              disabled={selectedExportRecords.length === 0}
+              onClick={() => exportCsv(project.name, selectedExportRecords, exportScopeFilename)}
+              variant="primary"
+            >
               <FileDown size={16} aria-hidden="true" />
               Export CSV
             </Button>
@@ -101,11 +170,32 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
       />
 
       <div className="space-y-6 p-5 lg:p-8">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Completed annotations" value={records.length} help="Submitted" tone="green" />
-          <MetricCard label="Response A chosen" value={distribution.responseA} help="Preference" tone="blue" />
-          <MetricCard label="Response B chosen" value={distribution.responseB} help="Preference" tone="amber" />
-          <MetricCard label="Average confidence" value={averageConfidence} help="Annotator" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <MetricCard
+            label="Completed annotations"
+            value={qualityMetrics.completedAnnotations}
+            help="Submitted"
+            tone="green"
+          />
+          <MetricCard label="Agreement rate" value={qualityMetrics.agreementRate} help="Average" tone="blue" />
+          <MetricCard
+            label="Records ready for export"
+            value={qualityMetrics.readyForExport}
+            help="Accepted"
+            tone="green"
+          />
+          <MetricCard
+            label="Records needing review"
+            value={qualityMetrics.needingReview}
+            help="Queue"
+            tone="amber"
+          />
+          <MetricCard
+            label="Low-confidence records"
+            value={qualityMetrics.lowConfidenceRecords}
+            help="Flagged"
+            tone="amber"
+          />
         </div>
 
         <Panel className="p-5">
@@ -121,7 +211,7 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
                 {objectiveLabels[project.objective]}
               </Badge>
               <Badge tone="slate">Config v{project.configVersion}</Badge>
-              <Badge tone="green">{records.length} records ready for export</Badge>
+              <Badge tone="green">{records.length} annotations collected</Badge>
             </div>
           </div>
 
@@ -131,6 +221,8 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
             <DistributionBar label="Tie / unsure" value={distribution.tie} total={records.length} />
           </div>
         </Panel>
+
+        <QualityReviewQueue summaries={taskSummaries} onReview={setSelectedSummary} />
 
         <Panel>
           <div className="flex flex-col gap-3 border-b border-[#e2ded6] p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -144,13 +236,11 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
           </div>
 
           {records.length === 0 ? (
-            <div className="p-5">
-              <EmptyState
-                title="No annotations yet"
-                description="Submit a live annotation task to create the first export-ready preference record."
-                action={<LinkButton to={`/annotate/${project.id}`} variant="primary">Open annotation task</LinkButton>}
-              />
-            </div>
+            <InlineEmptyState
+              title="No annotations yet"
+              description="Submit a live annotation task to create the first export-ready preference record."
+              action={<LinkButton to={`/annotate/${project.id}`} variant="primary">Open annotation task</LinkButton>}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[#e2ded6] text-left text-sm">
@@ -205,7 +295,226 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
       {selectedRecord ? (
         <DetailDrawer record={selectedRecord} onClose={() => setSelectedRecord(null)} />
       ) : null}
+      {selectedSummary ? (
+        <QualityReviewDrawer
+          onApproved={refreshReviewDecisions}
+          onClose={() => setSelectedSummary(null)}
+          summary={selectedSummary}
+        />
+      ) : null}
     </>
+  )
+}
+
+function QualityReviewQueue({
+  summaries,
+  onReview,
+}: {
+  summaries: TaskQualitySummary[]
+  onReview: (summary: TaskQualitySummary) => void
+}) {
+  const readyCount = summaries.filter(isReadyForExport).length
+
+  return (
+    <Panel>
+      <div className="flex flex-col gap-3 border-b border-[#e2ded6] p-5 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-950">Quality Review Queue</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-600">
+            Review disagreements and low-confidence tasks before exporting the final training dataset.
+          </p>
+        </div>
+        <Badge tone={readyCount === summaries.length && summaries.length > 0 ? 'green' : 'amber'}>
+          {readyCount} ready
+        </Badge>
+      </div>
+
+      {summaries.length === 0 ? (
+        <InlineEmptyState
+          title="No reviewable records yet"
+          description="Submit annotations or reset the demo data to populate agreement scoring."
+        />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-[#e2ded6] text-left text-sm">
+            <thead className="bg-[#f6f4ef] text-xs font-semibold uppercase tracking-normal text-neutral-500">
+              <tr>
+                <th className="px-5 py-3">Task ID</th>
+                <th className="px-5 py-3">Prompt preview</th>
+                <th className="px-5 py-3">Response A votes</th>
+                <th className="px-5 py-3">Response B votes</th>
+                <th className="px-5 py-3">Tie/Unsure votes</th>
+                <th className="px-5 py-3">Agreement</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#e2ded6] bg-[#fffdf9]">
+              {summaries.map((summary) => (
+                <tr key={summary.task_id} className="align-top transition hover:bg-[#f3f1eb]">
+                  <td className="px-5 py-4 font-mono text-xs text-neutral-600">{summary.task_id}</td>
+                  <td className="max-w-sm px-5 py-4 text-neutral-800">{summary.prompt}</td>
+                  <td className="px-5 py-4 text-neutral-700">{summary.responseAVotes}</td>
+                  <td className="px-5 py-4 text-neutral-700">{summary.responseBVotes}</td>
+                  <td className="px-5 py-4 text-neutral-700">{summary.tieUnsureVotes}</td>
+                  <td className="px-5 py-4 font-semibold text-neutral-800">{summary.agreementScore}%</td>
+                  <td className="px-5 py-4">
+                    <Badge tone={getStatusTone(summary.status)}>{formatReviewStatus(summary.status)}</Badge>
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <Button className="px-3" onClick={() => onReview(summary)}>
+                      <Eye size={15} aria-hidden="true" />
+                      Review
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Panel>
+  )
+}
+
+function QualityReviewDrawer({
+  summary,
+  onClose,
+  onApproved,
+}: {
+  summary: TaskQualitySummary
+  onClose: () => void
+  onApproved: () => void
+}) {
+  const [finalLabel, setFinalLabel] = useState<ReviewFinalLabel>(
+    summary.reviewDecision?.final_label ?? summary.majorityChoice,
+  )
+  const [reviewerNote, setReviewerNote] = useState(summary.reviewDecision?.reviewer_note ?? '')
+  const decisionOptions: { value: ReviewFinalLabel; label: string }[] = [
+    { value: 'response_a', label: 'Response A' },
+    { value: 'response_b', label: 'Response B' },
+    { value: 'tie_unsure', label: 'Tie / Unsure' },
+    { value: 'discard', label: 'Discard' },
+  ]
+
+  function approveFinalLabel() {
+    saveReviewDecision({
+      project_id: summary.project_id,
+      task_id: summary.task_id,
+      final_label: finalLabel,
+      reviewer_note: reviewerNote.trim(),
+      approved_at: new Date().toISOString(),
+    })
+    onApproved()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-30 flex justify-end bg-neutral-950/30" role="dialog" aria-modal="true">
+      <div className="h-full w-full max-w-4xl overflow-y-auto bg-[#fffdf9] shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e2ded6] bg-[#fffdf9] p-5">
+          <div>
+            <p className="text-sm font-semibold text-neutral-500">Reviewer adjudication</p>
+            <h2 className="text-lg font-semibold text-neutral-950">{summary.task_id}</h2>
+          </div>
+          <Button onClick={onClose}>
+            <X size={16} aria-hidden="true" />
+            Close
+          </Button>
+        </div>
+
+        <div className="space-y-5 p-5">
+          <div className="flex flex-wrap gap-2">
+            <Badge tone={getStatusTone(summary.status)}>{formatReviewStatus(summary.status)}</Badge>
+            <Badge tone="blue">{summary.agreementScore}% agreement</Badge>
+            <Badge tone={summary.hasLowConfidence ? 'amber' : 'green'}>
+              {summary.hasLowConfidence ? 'Low confidence flagged' : 'No low-confidence issue'}
+            </Badge>
+            <Badge tone="slate">Majority: {formatChoice(summary.majorityChoice)}</Badge>
+          </div>
+
+          <DetailBlock label="Prompt" value={summary.prompt} />
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <DetailBlock label="Response A" value={summary.response_a} />
+            <DetailBlock label="Response B" value={summary.response_b} />
+          </div>
+
+          <div className="rounded-lg border border-[#e2ded6] bg-[#f6f4ef]">
+            <div className="border-b border-[#e2ded6] p-4">
+              <h3 className="text-base font-semibold text-neutral-950">Annotator judgments</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-[#e2ded6] text-left text-sm">
+                <thead className="text-xs font-semibold uppercase tracking-normal text-neutral-500">
+                  <tr>
+                    <th className="px-4 py-3">Annotator</th>
+                    <th className="px-4 py-3">Judgment</th>
+                    <th className="px-4 py-3">Confidence</th>
+                    <th className="px-4 py-3">Safety labels</th>
+                    <th className="px-4 py-3">Rationale</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#e2ded6] bg-[#fffdf9]">
+                  {summary.annotations.map((annotation) => (
+                    <tr key={annotation.annotation_id} className="align-top">
+                      <td className="px-4 py-3 font-mono text-xs text-neutral-600">{annotation.annotator_id}</td>
+                      <td className="px-4 py-3">
+                        <Badge tone={annotation.chosen_response === 'tie_unsure' ? 'slate' : 'blue'}>
+                          {formatChoice(annotation.chosen_response)}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-neutral-700">{annotation.confidence ?? 'Not captured'}</td>
+                      <td className="px-4 py-3 text-neutral-700">{annotation.safety_label ?? 'Not captured'}</td>
+                      <td className="max-w-md px-4 py-3 text-neutral-800">{annotation.rationale ?? 'Not captured'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-4">
+            <h3 className="text-base font-semibold text-neutral-950">Final reviewer decision</h3>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {decisionOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  onClick={() => setFinalLabel(option.value)}
+                  variant={finalLabel === option.value ? 'primary' : 'secondary'}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+
+            <label className="mt-4 block">
+              <span className="text-sm font-semibold text-neutral-800">Reviewer note</span>
+              <textarea
+                className={`${textareaClass} mt-2`}
+                onChange={(event) => setReviewerNote(event.target.value)}
+                placeholder="Explain the adjudication decision."
+                value={reviewerNote}
+              />
+            </label>
+
+            {summary.reviewDecision ? (
+              <p className="mt-3 text-sm leading-6 text-neutral-600">
+                Current approved label: {formatFinalLabel(summary.reviewDecision.final_label)}. Last approved{' '}
+                {formatDate(summary.reviewDecision.approved_at)}.
+              </p>
+            ) : null}
+
+            <div className="mt-4 flex justify-end">
+              <Button onClick={approveFinalLabel} variant="primary">
+                <CheckCircle2 size={16} aria-hidden="true" />
+                Approve final label
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -294,29 +603,6 @@ function getDistribution(records: AnnotationResult[]) {
   )
 }
 
-function getAverageConfidence(records: AnnotationResult[]) {
-  const scores: Record<string, number> = { Low: 1, Medium: 2, High: 3 }
-  const captured = records
-    .map((record) => (record.confidence ? scores[record.confidence] : 0))
-    .filter((score) => score > 0)
-
-  if (captured.length === 0) {
-    return 'No data'
-  }
-
-  const average = captured.reduce((sum, score) => sum + score, 0) / captured.length
-
-  if (average >= 2.67) {
-    return 'High'
-  }
-
-  if (average >= 1.67) {
-    return 'Medium'
-  }
-
-  return 'Low'
-}
-
 function formatChoice(choice: AnnotationResult['chosen_response']) {
   if (choice === 'response_a') {
     return 'Response A'
@@ -327,6 +613,38 @@ function formatChoice(choice: AnnotationResult['chosen_response']) {
   }
 
   return 'Tie / unsure'
+}
+
+function formatFinalLabel(label: ReviewFinalLabel) {
+  if (label === 'discard') {
+    return 'Discard'
+  }
+
+  return formatChoice(label)
+}
+
+function formatReviewStatus(status: ReviewStatus) {
+  if (status === 'approved') {
+    return 'Approved'
+  }
+
+  if (status === 'accepted') {
+    return 'Accepted'
+  }
+
+  return 'Needs Review'
+}
+
+function getStatusTone(status: ReviewStatus): 'slate' | 'blue' | 'green' | 'amber' | 'red' {
+  if (status === 'approved') {
+    return 'green'
+  }
+
+  if (status === 'accepted') {
+    return 'blue'
+  }
+
+  return 'amber'
 }
 
 function formatDate(value: string) {

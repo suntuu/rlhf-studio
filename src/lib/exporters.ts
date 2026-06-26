@@ -1,4 +1,4 @@
-import type { AnnotationResult } from '../types'
+import type { QualityExportRecord } from '../types'
 
 function downloadFile(filename: string, mimeType: string, contents: string) {
   const blob = new Blob([contents], { type: mimeType })
@@ -21,13 +21,13 @@ function csvCell(value: unknown) {
   return `"${text.replaceAll('"', '""')}"`
 }
 
-export function exportJsonl(projectName: string, records: AnnotationResult[]) {
+export function exportJsonl(projectName: string, records: QualityExportRecord[], scope = 'annotations') {
   const lines = records.map((record) => JSON.stringify(record)).join('\n')
-  downloadFile(`${slugify(projectName)}-annotations.jsonl`, 'application/x-ndjson', lines)
+  downloadFile(`${slugify(projectName)}-${scope}.jsonl`, 'application/x-ndjson', lines)
 }
 
-export function exportCsv(projectName: string, records: AnnotationResult[]) {
-  const headers: (keyof AnnotationResult)[] = [
+export function exportCsv(projectName: string, records: QualityExportRecord[], scope = 'annotations') {
+  const headers: (keyof QualityExportRecord)[] = [
     'annotation_id',
     'project_id',
     'task_id',
@@ -49,11 +49,16 @@ export function exportCsv(projectName: string, records: AnnotationResult[]) {
     'rationale',
     'annotator_id',
     'submitted_at',
+    'agreement_score',
+    'majority_choice',
+    'review_status',
+    'reviewer_final_label',
+    'reviewer_note',
   ]
 
   const rows = records.map((record) => headers.map((header) => csvCell(record[header])).join(','))
   downloadFile(
-    `${slugify(projectName)}-annotations.csv`,
+    `${slugify(projectName)}-${scope}.csv`,
     'text/csv;charset=utf-8',
     [headers.join(','), ...rows].join('\n'),
   )

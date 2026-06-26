@@ -13,6 +13,10 @@ export type ProjectStatus = 'draft' | 'published'
 
 export type ChosenResponse = 'response_a' | 'response_b' | 'tie_unsure'
 
+export type ReviewFinalLabel = ChosenResponse | 'discard'
+
+export type ReviewStatus = 'accepted' | 'needs_review' | 'approved'
+
 export interface RequiredFields {
   preferenceStrength: boolean
   rationale: boolean
@@ -65,6 +69,24 @@ export interface AnnotationResult {
   annotator_id: string
   submitted_at: string
 }
+
+export interface ReviewerDecision {
+  project_id: string
+  task_id: string
+  final_label: ReviewFinalLabel
+  reviewer_note: string
+  approved_at: string
+}
+
+export interface QualityExportFields {
+  agreement_score: number
+  majority_choice: ChosenResponse
+  review_status: ReviewStatus
+  reviewer_final_label: ReviewFinalLabel | null
+  reviewer_note: string | null
+}
+
+export type QualityExportRecord = AnnotationResult & QualityExportFields
 
 export interface DemoTask {
   id: string

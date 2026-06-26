@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { objectiveLabels } from '../data/demoData'
 import { getAnnotations, getProjects } from '../lib/storage'
 import type { AnnotationResult, ProjectConfig } from '../types'
-import { Badge, LinkButton, MetricCard, PageHeader, Panel } from '../components/UI'
+import { Badge, InlineEmptyState, LinkButton, MetricCard, PageHeader, Panel } from '../components/UI'
 
 export function Dashboard() {
   const [projects, setProjects] = useState<ProjectConfig[]>([])
@@ -26,12 +26,6 @@ export function Dashboard() {
       <PageHeader
         title="RLHF data collection workspace"
         description="Configuration controls the annotation UI and output schema."
-        actions={
-          <LinkButton to="/projects/new" variant="primary">
-            <Plus size={16} aria-hidden="true" />
-            Create Project
-          </LinkButton>
-        }
       />
 
       <div className="space-y-6 p-5 lg:p-8">
@@ -79,49 +73,66 @@ export function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2ded6] bg-[#fffdf9]">
-                  {projects.map((project) => {
-                    const projectAnnotations = annotations.filter(
-                      (annotation) => annotation.project_id === project.id,
-                    )
+                  {projects.length === 0 ? (
+                    <tr>
+                      <td colSpan={5}>
+                        <InlineEmptyState
+                          title="No projects yet"
+                          description="Create a project to configure an annotation workflow and start collecting preference records."
+                          action={
+                            <LinkButton to="/projects/new" variant="primary">
+                              <Plus size={16} aria-hidden="true" />
+                              Create Project
+                            </LinkButton>
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ) : (
+                    projects.map((project) => {
+                      const projectAnnotations = annotations.filter(
+                        (annotation) => annotation.project_id === project.id,
+                      )
 
-                    return (
-                      <tr key={project.id} className="align-top hover:bg-[#f3f1eb]">
-                        <td className="max-w-sm px-5 py-4">
-                          <p className="font-semibold text-neutral-950">{project.name}</p>
-                          <p className="mt-1 line-clamp-2 text-sm leading-6 text-neutral-600">
-                            {project.description || 'No description provided.'}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Badge tone={project.objective === 'safety' ? 'amber' : 'blue'}>
-                            {objectiveLabels[project.objective]}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Badge tone={project.status === 'published' ? 'green' : 'slate'}>
-                            {project.status === 'published' ? 'Published' : 'Draft'}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4 text-neutral-700">{projectAnnotations.length}</td>
-                        <td className="px-5 py-4">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <LinkButton to={`/projects/${project.id}/configure`} className="px-3">
-                              <PencilLine size={15} aria-hidden="true" />
-                              Configure
-                            </LinkButton>
-                            <LinkButton to={`/annotate/${project.id}`} className="px-3">
-                              <PlayCircle size={15} aria-hidden="true" />
-                              Annotate
-                            </LinkButton>
-                            <LinkButton to={`/projects/${project.id}/results`} className="px-3">
-                              <FileDown size={15} aria-hidden="true" />
-                              Results
-                            </LinkButton>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                      return (
+                        <tr key={project.id} className="align-top transition duration-200 hover:bg-[#f3f1eb]">
+                          <td className="max-w-sm px-5 py-4">
+                            <p className="font-semibold text-neutral-950">{project.name}</p>
+                            <p className="mt-1 line-clamp-2 text-sm leading-6 text-neutral-600">
+                              {project.description || 'No description provided.'}
+                            </p>
+                          </td>
+                          <td className="px-5 py-4">
+                            <Badge tone={project.objective === 'safety' ? 'amber' : 'blue'}>
+                              {objectiveLabels[project.objective]}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-4">
+                            <Badge tone={project.status === 'published' ? 'green' : 'slate'}>
+                              {project.status === 'published' ? 'Published' : 'Draft'}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-4 text-neutral-700">{projectAnnotations.length}</td>
+                          <td className="px-5 py-4">
+                            <div className="flex flex-wrap justify-end gap-2">
+                              <LinkButton to={`/projects/${project.id}/configure`} className="px-3">
+                                <PencilLine size={15} aria-hidden="true" />
+                                Configure
+                              </LinkButton>
+                              <LinkButton to={`/annotate/${project.id}`} className="px-3">
+                                <PlayCircle size={15} aria-hidden="true" />
+                                Annotate
+                              </LinkButton>
+                              <LinkButton to={`/projects/${project.id}/results`} className="px-3">
+                                <FileDown size={15} aria-hidden="true" />
+                                Results
+                              </LinkButton>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -157,12 +168,14 @@ export function Dashboard() {
           </Panel>
         </div>
 
-        <div className="flex justify-end sm:hidden">
-          <LinkButton to="/projects/new" variant="primary" className="w-full">
-            <Plus size={16} aria-hidden="true" />
-            Create Project
-          </LinkButton>
-        </div>
+        {projects.length > 0 && (
+          <div className="flex justify-end sm:hidden">
+            <LinkButton to="/projects/new" variant="primary" className="w-full">
+              <Plus size={16} aria-hidden="true" />
+              Create Project
+            </LinkButton>
+          </div>
+        )}
       </div>
     </>
   )

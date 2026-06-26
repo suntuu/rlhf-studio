@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary
 
-RLHF Studio is a configurable training-data collection platform for RLHF workflows. Admins define annotation projects, choose methodology presets, configure required feedback fields, preview the annotator experience, and export structured preference records. Annotators complete comparison tasks, provide required judgments, and submit records that can be reviewed and exported as JSONL or CSV.
+RLHF Studio is a configurable training-data collection platform for RLHF workflows. Admins define annotation projects, choose methodology presets, configure required feedback fields, preview the annotator experience, and export structured preference records. Annotators complete comparison tasks, provide required judgments, and submit records that can be reviewed and exported as JSONL or CSV. v1 includes a lightweight quality review simulation with agreement scoring and reviewer adjudication saved in localStorage.
 
 The current prototype proves the core product loop: configuration controls the annotator UI and output schema. It does not train models, tune models, deploy models, or manage training pipelines.
 
@@ -82,22 +82,26 @@ Implemented in v1:
 - localStorage persistence
 - Results table
 - Detail view with full annotation record
+- Lightweight agreement scoring grouped by `task_id`
+- Quality Review Queue for disagreement and low-confidence review
+- Reviewer adjudication modal with localStorage persistence
+- Export scope option for all records or approved / accepted records only
 - JSONL export
 - CSV export
 - Reset demo data control
 
-The prototype uses seeded prompts/responses and localStorage to prove the core workflow without adding backend dependency. This keeps the demo focused on product behavior: configuration, annotation, persistence, review, and export.
+The prototype uses seeded prompts/responses, multi-annotator demo records, and localStorage to prove the core workflow without adding backend dependency. This keeps the demo focused on product behavior: configuration, annotation, lightweight quality review, persistence, and export.
 
 Not implemented in v1:
 
 - Backend database
 - Authentication
 - Role-based permissions
-- Reviewer adjudication workflows
+- Production reviewer workflows
 - Gold tasks
 - Batch management
 - Annotator assignment queues
-- Agreement analytics beyond simple dashboard placeholder metrics
+- Advanced agreement analytics beyond the lightweight simulation
 - Live LLM response generation
 - Model training or training pipeline management
 
@@ -112,10 +116,11 @@ Not implemented in v1:
 | System renders annotator UI from configuration | System | Yes | Preview and live annotation screens conditionally render fields from `requiredFields` |
 | Annotator can submit structured feedback | Annotator | Yes | Validated form saves a complete `AnnotationResult` |
 | Admin can review results | Admin | Yes | Results table and detail drawer are implemented |
-| Admin can export JSONL/CSV | Admin | Yes | Exports are scoped to the selected project |
-| Quality reviewer can adjudicate disagreements | Quality reviewer | Roadmap | Planned for P1 reviewer workflows |
+| Admin can export JSONL/CSV | Admin | Yes | Exports are scoped to the selected project and can include all or approved / accepted records |
+| System can calculate agreement by task | System | Yes | Lightweight simulation groups annotations by `task_id` and calculates majority choice, agreement score, and review status |
+| Quality reviewer can adjudicate disagreements | Quality reviewer | Simulated | Reviewer decision and note are saved in localStorage |
 | Admin can manage batches | Admin | Roadmap | Planned for P2 operational scale |
-| Admin can track annotator agreement | Admin / reviewer | Roadmap | Planned for P1 quality analytics |
+| Admin can track annotator agreement | Admin / reviewer | Partial | v1 shows task-level agreement scoring; deeper analytics remain roadmap |
 
 ## 10. Non-Functional Requirements
 
@@ -127,7 +132,7 @@ Not implemented in v1:
 | Reliability | Preserve saved projects and annotations across refreshes | Implemented through localStorage |
 | Auditability | Track config version, submitted timestamp, project ID, task ID, annotator ID, and model metadata | Implemented at the record level. Full audit logs are roadmap |
 | Security/privacy | Avoid unnecessary external calls and keep data local in the prototype | Implemented by design. Enterprise controls are roadmap |
-| Data quality | Enforce required fields and capture rationale, confidence, and labels | Implemented for required fields. Gold tasks, agreement, and adjudication are roadmap |
+| Data quality | Enforce required fields and capture rationale, confidence, labels, and lightweight review state | Implemented for required fields, task-level agreement scoring, and simulated reviewer adjudication. Gold tasks and production review operations are roadmap |
 
 ## 11. Configuration Schema
 
@@ -196,13 +201,23 @@ Fields used in the current prototype:
 | `annotator_id` | string | Prototype annotator identifier |
 | `submitted_at` | ISO timestamp | Submission time |
 
+When exported from the Results screen, records are enriched with lightweight quality fields:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `agreement_score` | number | Rounded task-level agreement percentage |
+| `majority_choice` | `response_a`, `response_b`, or `tie_unsure` | Majority label from grouped annotations |
+| `review_status` | `accepted`, `needs_review`, or `approved` | Current quality review status |
+| `reviewer_final_label` | `response_a`, `response_b`, `tie_unsure`, `discard`, or null | Reviewer adjudication result when approved |
+| `reviewer_note` | string or null | Reviewer note saved during adjudication |
+
 Sample JSON object:
 
 ```json
 {
   "annotation_id": "annotation-123",
   "project_id": "project-safety",
-  "task_id": "task-phishing-safety",
+  "task_id": "task_004",
   "config_version": 1,
   "project_name": "Safety Red Team Review",
   "objective": "safety",
@@ -220,7 +235,12 @@ Sample JSON object:
   "confidence": "High",
   "rationale": "Response A refuses unsafe content and redirects to a safe alternative.",
   "annotator_id": "demo_annotator_001",
-  "submitted_at": "2026-06-26T10:00:00.000Z"
+  "submitted_at": "2026-06-26T10:00:00.000Z",
+  "agreement_score": 100,
+  "majority_choice": "response_a",
+  "review_status": "accepted",
+  "reviewer_final_label": null,
+  "reviewer_note": null
 }
 ```
 
@@ -292,21 +312,30 @@ Sample JSON object:
 ```text
 +------------------------------------------------------------------+
 | Header: Project results                                           |
-| Copy: Export-ready structured preference records.                 |
-| [Annotate] [Export JSONL] [Export CSV]                            |
+| Copy: Quality review prevents noisy feedback from entering data.  |
+| [Annotate] [Export scope] [Export JSONL] [Export CSV]             |
 +------------------------------------------------------------------+
 | Metrics                                                           |
 | - Completed annotations                                           |
-| - Response A chosen                                               |
-| - Response B chosen                                               |
-| - Average confidence                                              |
+| - Agreement rate                                                  |
+| - Records ready for export                                        |
+| - Records needing review                                          |
+| - Low-confidence records                                          |
 +------------------------------------------------------------------+
 | Project summary                                                   |
 | Preference distribution                                           |
 +------------------------------------------------------------------+
+| Quality Review Queue                                              |
+| Task ID | Prompt | A votes | B votes | Tie votes | Agreement      |
+| Status | [Review]                                                |
++------------------------------------------------------------------+
 | Results table                                                     |
 | Task ID | Prompt preview | Choice | Strength | Safety | Confidence |
 | Click row or [View] opens detail drawer                           |
++------------------------------------------------------------------+
+| Reviewer adjudication drawer                                      |
+| Prompt, responses, all judgments, rationales, confidence, safety   |
+| labels, final reviewer decision, reviewer note, approve button     |
 +------------------------------------------------------------------+
 | Detail drawer                                                     |
 | Prompt, responses, chosen response, rationale, model metadata,     |
@@ -344,8 +373,10 @@ flowchart LR
 5. Validation prevents submission until required fields are complete.
 6. Submission saves a structured `AnnotationResult` to localStorage.
 7. The results screen reads saved annotation records for the selected project.
-8. The detail drawer shows the full annotation record.
-9. JSONL and CSV exports are generated only from records for the selected project.
+8. The results screen groups annotations by `task_id` and calculates vote counts, majority choice, agreement score, low-confidence flags, and review status.
+9. The Quality Review Queue lets a reviewer inspect all judgments for a task and save an adjudicated final label plus note to localStorage.
+10. The detail drawer shows the full annotation record.
+11. JSONL and CSV exports are generated only from records for the selected project, with an option to export all records or only approved / accepted records.
 
 ## 16. Roadmap and Prioritization
 
@@ -355,14 +386,15 @@ flowchart LR
 - Dynamic annotation UI
 - Submit feedback
 - Results
+- Lightweight quality review simulation
 - Export
 
 ### P1 - Data Quality
 
 - Gold tasks
-- Multi-annotator agreement
-- Reviewer adjudication
-- Low-confidence queues
+- Deeper multi-annotator analytics
+- Production reviewer assignment workflows
+- Low-confidence routing
 - Instruction versioning
 
 ### P2 - Operational Scale
@@ -401,10 +433,11 @@ Five-minute interview demo script:
 3. Configure helpfulness project: Open create/configure, choose the Meta-style helpfulness preset, and show that objective, task type, required fields, and sample content are controlled by configuration.
 4. Preview generated task: Open preview and show "Which response is more helpful?" with only the fields required by that configuration.
 5. Submit annotation: Open live task, choose a response, fill preference strength, confidence, and rationale, then submit.
-6. Show result: Open results, show the submitted record in the table, and open the detail drawer to show prompt, responses, rationale, model metadata, and raw `AnnotationResult`.
-7. Export JSONL: Click export and explain that each line is one structured training-data record.
-8. Switch to safety configuration: Choose the safety preset and show the preview heading changes to "Which response is safer?" and safety labels appear.
-9. Explain roadmap: "P1 adds quality controls, P2 adds operations, and P3 adds enterprise backend, roles, audit logs, and integrations."
+6. Show result: Open results, show agreement scoring, the Quality Review Queue, and the submitted record in the table.
+7. Adjudicate a task: Click Review, inspect the three annotator judgments, choose a final label, add a reviewer note, and approve it.
+8. Export JSONL: Choose all records or approved / accepted records only, then export and explain that each line is one structured training-data record with quality metadata.
+9. Switch to safety configuration: Choose the safety preset and show the preview heading changes to "Which response is safer?" and safety labels appear.
+10. Explain roadmap: "P1 deepens quality controls, P2 adds operations, and P3 adds enterprise backend, roles, audit logs, and integrations."
 
 ## 19. Appendix
 

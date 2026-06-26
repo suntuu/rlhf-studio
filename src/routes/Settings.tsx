@@ -8,7 +8,7 @@ export function Settings() {
 
   function reset() {
     resetDemoData()
-    setMessage('Demo data reset. Seed projects were restored and annotations were cleared.')
+    setMessage('Demo data reset. Seed projects and multi-annotation demo records were restored.')
   }
 
   return (
@@ -37,7 +37,7 @@ export function Settings() {
             <div>
               <h2 className="text-lg font-semibold text-neutral-950">Reset demo data</h2>
               <p className="mt-1 text-sm leading-6 text-neutral-600">
-                Restore the two seeded projects and remove submitted annotations.
+                Restore the two seeded projects and sample multi-annotation records.
               </p>
             </div>
             <Badge tone="amber">Debug</Badge>

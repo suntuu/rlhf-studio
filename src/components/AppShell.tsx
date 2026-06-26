@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { cn } from '../lib/styles'
+import { getProjects } from '../lib/storage'
 import { LinkButton } from './UI'
 
 const navItems = [
@@ -19,6 +20,8 @@ const navItems = [
 
 export function AppShell() {
   const location = useLocation()
+  const hasProjects = getProjects().length > 0
+  const emptyProjectsPage = !hasProjects && (location.pathname === '/' || location.pathname === '/results')
 
   return (
     <div className="min-h-screen bg-[#e9e7e2] text-neutral-900">
@@ -59,7 +62,7 @@ export function AppShell() {
           <div className="rounded-xl border border-[#e2ded6] bg-[#fffdf9] p-3 shadow-[0_1px_2px_rgba(36,32,28,0.04)]">
             <p className="text-xs font-semibold text-neutral-900">Prototype scope</p>
             <p className="mt-1 text-xs leading-5 text-neutral-500">
-            This prototype collects RLHF training data only. Model training is outside scope.
+              This prototype collects RLHF training data only. Model training is outside scope.
             </p>
           </div>
         </div>
@@ -74,11 +77,13 @@ export function AppShell() {
               <p className="text-xs text-neutral-500">{headerLabel(location.pathname)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <LinkButton to="/projects/new" variant="primary" className="hidden sm:inline-flex">
-              Create Project
-            </LinkButton>
-          </div>
+          {!emptyProjectsPage && (
+            <div className="hidden items-center gap-2 sm:flex">
+              <LinkButton to="/projects/new" variant="primary">
+                Create Project
+              </LinkButton>
+            </div>
+          )}
         </header>
 
         <nav className="grid grid-cols-4 border-b border-[#ddd8cf] bg-[#f7f6f2] lg:hidden" aria-label="Mobile navigation">

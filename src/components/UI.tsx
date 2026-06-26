@@ -163,6 +163,28 @@ export function EmptyState({
   )
 }
 
+export function InlineEmptyState({
+  title,
+  description,
+  action,
+  className,
+}: {
+  title: string
+  description: string
+  action?: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn('flex flex-col items-start gap-3 p-6', className)}>
+      <div>
+        <h2 className="text-base font-semibold text-neutral-950">{title}</h2>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-600">{description}</p>
+      </div>
+      {action}
+    </div>
+  )
+}
+
 export function FormLabel({
   label,
   hint,

@@ -1,8 +1,9 @@
-import { cloneDefaultProjects } from '../data/demoData'
-import type { AnnotationResult, ProjectConfig } from '../types'
+import { cloneDefaultAnnotations, cloneDefaultProjects } from '../data/demoData'
+import type { AnnotationResult, ProjectConfig, ReviewerDecision } from '../types'
 
 const projectsKey = 'rlhf-studio.projects.v1'
 const annotationsKey = 'rlhf-studio.annotations.v1'
+const reviewDecisionsKey = 'rlhf-studio.review-decisions.v1'
 
 function canUseStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -41,7 +42,17 @@ function ensureSeededProjects() {
   }
 
   if (!window.localStorage.getItem(annotationsKey)) {
-    writeJson(annotationsKey, [])
+    writeJson(annotationsKey, cloneDefaultAnnotations())
+  } else {
+    const annotations = readJson<AnnotationResult[]>(annotationsKey, [])
+
+    if (annotations.length === 0) {
+      writeJson(annotationsKey, cloneDefaultAnnotations())
+    }
+  }
+
+  if (!window.localStorage.getItem(reviewDecisionsKey)) {
+    writeJson(reviewDecisionsKey, [])
   }
 }
 
@@ -87,7 +98,32 @@ export function getAnnotationsByProject(projectId: string): AnnotationResult[] {
   return getAnnotations().filter((annotation) => annotation.project_id === projectId)
 }
 
+export function getReviewDecisions(projectId?: string): ReviewerDecision[] {
+  ensureSeededProjects()
+  const decisions = readJson<ReviewerDecision[]>(reviewDecisionsKey, [])
+
+  if (!projectId) {
+    return decisions
+  }
+
+  return decisions.filter((decision) => decision.project_id === projectId)
+}
+
+export function saveReviewDecision(decision: ReviewerDecision) {
+  const decisions = getReviewDecisions()
+  const nextDecisions = decisions.some(
+    (item) => item.project_id === decision.project_id && item.task_id === decision.task_id,
+  )
+    ? decisions.map((item) =>
+        item.project_id === decision.project_id && item.task_id === decision.task_id ? decision : item,
+      )
+    : [decision, ...decisions]
+
+  writeJson(reviewDecisionsKey, nextDecisions)
+}
+
 export function resetDemoData() {
   writeJson(projectsKey, cloneDefaultProjects())
-  writeJson(annotationsKey, [])
+  writeJson(annotationsKey, cloneDefaultAnnotations())
+  writeJson(reviewDecisionsKey, [])
 }
