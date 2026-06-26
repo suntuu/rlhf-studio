@@ -43,21 +43,21 @@ function ResultsIndex() {
       />
       <div className="p-5 lg:p-8">
         <Panel>
-          <div className="border-b border-slate-200 p-5">
-            <h2 className="text-lg font-semibold text-slate-950">Project result sets</h2>
+          <div className="border-b border-[#e2ded6] p-5">
+            <h2 className="text-lg font-semibold text-neutral-950">Project result sets</h2>
           </div>
-          <div className="divide-y divide-slate-200">
+          <div className="divide-y divide-[#e2ded6]">
             {projects.map((project) => {
               const count = annotations.filter((annotation) => annotation.project_id === project.id).length
               return (
                 <Link
-                  className="flex flex-col gap-3 p-5 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 p-5 transition hover:bg-[#f3f1eb] sm:flex-row sm:items-center sm:justify-between"
                   key={project.id}
                   to={`/projects/${project.id}/results`}
                 >
                   <div>
-                    <p className="font-semibold text-slate-950">{project.name}</p>
-                    <p className="mt-1 text-sm text-slate-600">{count} records ready for export</p>
+                    <p className="font-semibold text-neutral-950">{project.name}</p>
+                    <p className="mt-1 text-sm text-neutral-600">{count} records ready for export</p>
                   </div>
                   <Badge tone={count > 0 ? 'green' : 'slate'}>{count > 0 ? 'Has results' : 'Empty'}</Badge>
                 </Link>
@@ -111,8 +111,8 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
         <Panel className="p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-950">Project summary</h2>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+              <h2 className="text-lg font-semibold text-neutral-950">Project summary</h2>
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-600">
                 {project.description || 'No project description.'}
               </p>
             </div>
@@ -133,10 +133,10 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
         </Panel>
 
         <Panel>
-          <div className="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-[#e2ded6] p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-950">Results table</h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <h2 className="text-lg font-semibold text-neutral-950">Results table</h2>
+              <p className="mt-1 text-sm text-neutral-600">
                 Export-ready structured preference records. Click a row to inspect the complete annotation record.
               </p>
             </div>
@@ -153,8 +153,8 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-normal text-slate-500">
+              <table className="min-w-full divide-y divide-[#e2ded6] text-left text-sm">
+                <thead className="bg-[#f6f4ef] text-xs font-semibold uppercase tracking-normal text-neutral-500">
                   <tr>
                     <th className="px-5 py-3">Task ID</th>
                     <th className="px-5 py-3">Prompt preview</th>
@@ -166,24 +166,24 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
                     <th className="px-5 py-3 text-right">Detail</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
+                <tbody className="divide-y divide-[#e2ded6] bg-[#fffdf9]">
                   {records.map((record) => (
                     <tr
-                      className="cursor-pointer align-top transition hover:bg-slate-50"
+                      className="cursor-pointer align-top transition hover:bg-[#f3f1eb]"
                       key={record.annotation_id}
                       onClick={() => setSelectedRecord(record)}
                     >
-                      <td className="px-5 py-4 font-mono text-xs text-slate-600">{record.task_id}</td>
-                      <td className="max-w-sm px-5 py-4 text-slate-800">{record.prompt}</td>
+                      <td className="px-5 py-4 font-mono text-xs text-neutral-600">{record.task_id}</td>
+                      <td className="max-w-sm px-5 py-4 text-neutral-800">{record.prompt}</td>
                       <td className="px-5 py-4">
                         <Badge tone={record.chosen_response === 'tie_unsure' ? 'slate' : 'blue'}>
                           {formatChoice(record.chosen_response)}
                         </Badge>
                       </td>
-                      <td className="px-5 py-4 text-slate-700">{record.preference_strength ?? 'Not captured'}</td>
-                      <td className="px-5 py-4 text-slate-700">{record.safety_label ?? 'Not captured'}</td>
-                      <td className="px-5 py-4 text-slate-700">{record.confidence ?? 'Not captured'}</td>
-                      <td className="px-5 py-4 text-slate-700">{formatDate(record.submitted_at)}</td>
+                      <td className="px-5 py-4 text-neutral-700">{record.preference_strength ?? 'Not captured'}</td>
+                      <td className="px-5 py-4 text-neutral-700">{record.safety_label ?? 'Not captured'}</td>
+                      <td className="px-5 py-4 text-neutral-700">{record.confidence ?? 'Not captured'}</td>
+                      <td className="px-5 py-4 text-neutral-700">{formatDate(record.submitted_at)}</td>
                       <td className="px-5 py-4 text-right">
                         <Button className="px-3" onClick={(event) => {
                           event.stopPropagation()
@@ -213,27 +213,27 @@ function DistributionBar({ label, value, total }: { label: string; value: number
   const percent = total === 0 ? 0 : Math.round((value / total) * 100)
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-4">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="font-semibold text-slate-800">{label}</span>
-        <span className="text-slate-500">{value}</span>
+        <span className="font-semibold text-neutral-800">{label}</span>
+        <span className="text-neutral-500">{value}</span>
       </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
-        <div className="h-full rounded-full bg-blue-600" style={{ width: `${percent}%` }} />
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e2ded6]">
+        <div className="h-full rounded-full bg-[#202936]" style={{ width: `${percent}%` }} />
       </div>
-      <p className="mt-2 text-xs font-semibold text-slate-500">{percent}%</p>
+      <p className="mt-2 text-xs font-semibold text-neutral-500">{percent}%</p>
     </div>
   )
 }
 
 function DetailDrawer({ record, onClose }: { record: AnnotationResult; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex justify-end bg-slate-950/30" role="dialog" aria-modal="true">
-      <div className="h-full w-full max-w-2xl overflow-y-auto bg-white shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white p-5">
+    <div className="fixed inset-0 z-30 flex justify-end bg-neutral-950/30" role="dialog" aria-modal="true">
+      <div className="h-full w-full max-w-2xl overflow-y-auto bg-[#fffdf9] shadow-2xl">
+        <div className="sticky top-0 flex items-center justify-between border-b border-[#e2ded6] bg-[#fffdf9] p-5">
           <div>
-            <p className="text-sm font-semibold text-slate-500">Annotation detail</p>
-            <h2 className="text-lg font-semibold text-slate-950">{record.annotation_id}</h2>
+            <p className="text-sm font-semibold text-neutral-500">Annotation detail</p>
+            <h2 className="text-lg font-semibold text-neutral-950">{record.annotation_id}</h2>
           </div>
           <Button onClick={onClose}>
             <X size={16} aria-hidden="true" />
@@ -270,9 +270,9 @@ function DetailDrawer({ record, onClose }: { record: AnnotationResult; onClose: 
 
 function DetailBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-normal text-slate-500">{label}</p>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-800">{value}</p>
+    <div className="rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-4">
+      <p className="text-xs font-semibold uppercase tracking-normal text-neutral-500">{label}</p>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-800">{value}</p>
     </div>
   )
 }

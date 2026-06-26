@@ -40,10 +40,10 @@ export function Templates() {
         {templates.map((template) => (
           <Panel className="flex flex-col p-5" key={template.preset}>
             <div className="flex items-start justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-950">{template.title}</h2>
+              <h2 className="text-lg font-semibold text-neutral-950">{template.title}</h2>
               <Badge tone={template.objective === 'Safety' ? 'amber' : 'blue'}>{template.objective}</Badge>
             </div>
-            <p className="mt-3 text-sm leading-6 text-slate-600">{template.summary}</p>
+            <p className="mt-3 text-sm leading-6 text-neutral-600">{template.summary}</p>
             <div className="mt-5 flex flex-wrap gap-2">
               {template.fields.map((field) => (
                 <Badge key={field} tone="slate">

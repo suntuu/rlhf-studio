@@ -21,26 +21,29 @@ export function AppShell() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-800 bg-slate-950 text-white lg:flex">
-        <div className="flex h-16 items-center gap-3 border-b border-slate-800 px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
+    <div className="min-h-screen bg-[#e9e7e2] text-neutral-900">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-[#ddd8cf] bg-[#f7f6f2] text-neutral-700 lg:flex">
+        <div className="flex h-16 items-center gap-3 border-b border-[#ebe7df] px-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#202936] text-white shadow-[0_8px_20px_rgba(32,41,54,0.18)]">
             <Sparkles size={18} aria-hidden="true" />
           </div>
           <div>
-            <p className="text-base font-semibold">RLHF Studio</p>
-            <p className="text-xs text-slate-400">Data collection ops</p>
+            <p className="text-base font-semibold text-neutral-950">RLHF Studio</p>
+            <p className="text-xs text-neutral-500">Data collection ops</p>
           </div>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
+        <nav className="flex flex-1 flex-col gap-1 px-3 py-4" aria-label="Main navigation">
+          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
+            Workspace
+          </p>
           {navItems.map((item) => (
             <NavLink
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition',
+                  'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition duration-200',
                   isActive
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-900 hover:text-white',
+                    ? 'border-[#e2ded6] bg-[#fffdf9] text-neutral-950 shadow-[0_1px_2px_rgba(36,32,28,0.06)]'
+                    : 'border-transparent text-neutral-600 hover:bg-[#efede8] hover:text-neutral-950',
                 )
               }
               end={item.to === '/'}
@@ -52,20 +55,23 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
-        <div className="border-t border-slate-800 p-4">
-          <p className="text-xs leading-5 text-slate-400">
+        <div className="border-t border-[#ebe7df] p-3">
+          <div className="rounded-xl border border-[#e2ded6] bg-[#fffdf9] p-3 shadow-[0_1px_2px_rgba(36,32,28,0.04)]">
+            <p className="text-xs font-semibold text-neutral-900">Prototype scope</p>
+            <p className="mt-1 text-xs leading-5 text-neutral-500">
             This prototype collects RLHF training data only. Model training is outside scope.
-          </p>
+            </p>
+          </div>
         </div>
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur lg:px-8">
+        <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between border-b border-[#ddd8cf] bg-[#f7f6f2]/90 px-4 backdrop-blur lg:px-8">
           <div className="flex items-center gap-3">
-            <PanelLeft className="text-slate-400 lg:hidden" size={20} aria-hidden="true" />
+            <PanelLeft className="text-neutral-500 lg:hidden" size={20} aria-hidden="true" />
             <div>
-              <p className="text-sm font-semibold text-slate-950">RLHF Studio</p>
-              <p className="text-xs text-slate-500">{headerLabel(location.pathname)}</p>
+              <p className="text-sm font-semibold text-neutral-950">RLHF Studio</p>
+              <p className="text-xs text-neutral-500">{headerLabel(location.pathname)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -75,13 +81,13 @@ export function AppShell() {
           </div>
         </header>
 
-        <nav className="grid grid-cols-4 border-b border-slate-200 bg-white lg:hidden">
+        <nav className="grid grid-cols-4 border-b border-[#ddd8cf] bg-[#f7f6f2] lg:hidden" aria-label="Mobile navigation">
           {navItems.map((item) => (
             <NavLink
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-1 px-2 py-3 text-xs font-semibold',
-                  isActive ? 'text-blue-700' : 'text-slate-500',
+                  'flex flex-col items-center gap-1 px-2 py-3 text-xs font-semibold transition',
+                  isActive ? 'text-neutral-950' : 'text-neutral-500',
                 )
               }
               end={item.to === '/'}
@@ -94,7 +100,7 @@ export function AppShell() {
           ))}
         </nav>
 
-        <main className="min-h-[calc(100vh-4rem)]">
+        <main className="min-h-[calc(100vh-4rem)] bg-[#f7f6f2]">
           <Outlet />
         </main>
       </div>

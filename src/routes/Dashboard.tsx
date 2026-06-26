@@ -54,10 +54,10 @@ export function Dashboard() {
 
         <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
           <Panel>
-            <div className="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-b border-[#e2ded6] p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-slate-950">Projects</h2>
-                <p className="mt-1 text-sm text-slate-600">
+                <h2 className="text-lg font-semibold text-neutral-950">Projects</h2>
+                <p className="mt-1 text-sm text-neutral-600">
                   Export-ready structured preference records are created from completed tasks.
                 </p>
               </div>
@@ -68,8 +68,8 @@ export function Dashboard() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-normal text-slate-500">
+              <table className="min-w-full divide-y divide-[#e2ded6] text-left text-sm">
+                <thead className="bg-[#f6f4ef] text-xs font-semibold uppercase tracking-normal text-neutral-500">
                   <tr>
                     <th className="px-5 py-3">Project</th>
                     <th className="px-5 py-3">Objective</th>
@@ -78,17 +78,17 @@ export function Dashboard() {
                     <th className="px-5 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
+                <tbody className="divide-y divide-[#e2ded6] bg-[#fffdf9]">
                   {projects.map((project) => {
                     const projectAnnotations = annotations.filter(
                       (annotation) => annotation.project_id === project.id,
                     )
 
                     return (
-                      <tr key={project.id} className="align-top hover:bg-slate-50">
+                      <tr key={project.id} className="align-top hover:bg-[#f3f1eb]">
                         <td className="max-w-sm px-5 py-4">
-                          <p className="font-semibold text-slate-950">{project.name}</p>
-                          <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">
+                          <p className="font-semibold text-neutral-950">{project.name}</p>
+                          <p className="mt-1 line-clamp-2 text-sm leading-6 text-neutral-600">
                             {project.description || 'No description provided.'}
                           </p>
                         </td>
@@ -102,7 +102,7 @@ export function Dashboard() {
                             {project.status === 'published' ? 'Published' : 'Draft'}
                           </Badge>
                         </td>
-                        <td className="px-5 py-4 text-slate-700">{projectAnnotations.length}</td>
+                        <td className="px-5 py-4 text-neutral-700">{projectAnnotations.length}</td>
                         <td className="px-5 py-4">
                           <div className="flex flex-wrap justify-end gap-2">
                             <LinkButton to={`/projects/${project.id}/configure`} className="px-3">
@@ -128,9 +128,9 @@ export function Dashboard() {
           </Panel>
 
           <Panel className="p-5">
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <h2 className="text-base font-semibold text-blue-950">Interview demo path</h2>
-              <ol className="mt-3 space-y-3 text-sm leading-6 text-blue-950">
+            <div className="rounded-xl border border-[#e2ded6] bg-[#f6f4ef] p-4">
+              <h2 className="text-base font-semibold text-neutral-950">Interview demo path</h2>
+              <ol className="mt-3 space-y-3 text-sm leading-6 text-neutral-700">
                 <li>1. Configure a project preset.</li>
                 <li>2. Preview the generated annotator UI.</li>
                 <li>3. Submit an annotation.</li>
@@ -141,14 +141,14 @@ export function Dashboard() {
             <div className="mt-5 space-y-3">
               <Link
                 to="/projects/new"
-                className="flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+                className="flex items-center justify-between rounded-lg border border-[#e2ded6] p-3 text-sm font-semibold text-neutral-800 transition duration-200 hover:bg-[#f3f1eb]"
               >
                 Create configurable workflow
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
               <Link
                 to="/templates"
-                className="flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+                className="flex items-center justify-between rounded-lg border border-[#e2ded6] p-3 text-sm font-semibold text-neutral-800 transition duration-200 hover:bg-[#f3f1eb]"
               >
                 Compare methodology presets
                 <ArrowRight size={16} aria-hidden="true" />

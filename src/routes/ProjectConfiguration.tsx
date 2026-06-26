@@ -92,10 +92,10 @@ export function ProjectConfiguration() {
       <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:p-8">
         <form className="space-y-6" onSubmit={(event) => event.preventDefault()}>
           <Panel className="p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2ded6] pb-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-950">Project basics</h2>
-                <p className="mt-1 text-sm text-slate-600">
+                <h2 className="text-lg font-semibold text-neutral-950">Project basics</h2>
+                <p className="mt-1 text-sm text-neutral-600">
                   This prototype collects RLHF training data only. Model training is outside scope.
                 </p>
               </div>
@@ -136,8 +136,8 @@ export function ProjectConfiguration() {
           </Panel>
 
           <Panel className="p-5">
-            <h2 className="text-lg font-semibold text-slate-950">Workflow controls</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <h2 className="text-lg font-semibold text-neutral-950">Workflow controls</h2>
+            <p className="mt-1 text-sm leading-6 text-neutral-600">
               Configuration controls the annotator UI and output schema.
             </p>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -159,10 +159,10 @@ export function ProjectConfiguration() {
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(turnFormatLabels) as TurnFormat[]).map((format) => (
                     <button
-                      className={`rounded-md border px-3 py-2 text-left text-sm font-semibold transition ${
+                      className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold transition duration-200 ${
                         project.turnFormat === format
-                          ? 'border-blue-500 bg-blue-50 text-blue-800'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          ? 'border-[#202936] bg-[#f3f1eb] text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
+                          : 'border-[#e2ded6] bg-[#fffdf9] text-neutral-700 hover:bg-[#f3f1eb]'
                       }`}
                       key={format}
                       onClick={() => update('turnFormat', format)}
@@ -176,26 +176,26 @@ export function ProjectConfiguration() {
             </div>
 
             <div className="mt-5">
-              <p className="text-sm font-semibold text-slate-800">Task type</p>
+              <p className="text-sm font-semibold text-neutral-800">Task type</p>
               <div className="mt-2 grid gap-3 md:grid-cols-3">
                 {(Object.keys(taskTypeLabels) as TaskType[]).map((type) => {
                   const disabled = type !== 'pairwise'
                   return (
                     <button
-                      className={`rounded-md border p-3 text-left transition ${
+                      className={`rounded-lg border p-3 text-left transition duration-200 ${
                         project.taskType === type
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                          ? 'border-[#202936] bg-[#f3f1eb] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
+                          : 'border-[#e2ded6] bg-[#fffdf9] hover:bg-[#f3f1eb]'
                       } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
                       disabled={disabled}
                       key={type}
                       onClick={() => update('taskType', type)}
                       type="button"
                     >
-                      <span className="block text-sm font-semibold text-slate-900">
+                      <span className="block text-sm font-semibold text-neutral-900">
                         {taskTypeLabels[type]}
                       </span>
-                      <span className="mt-1 block text-xs text-slate-500">
+                      <span className="mt-1 block text-xs text-neutral-500">
                         {disabled ? 'Roadmap preview' : 'Fully supported in v1'}
                       </span>
                     </button>
@@ -206,7 +206,7 @@ export function ProjectConfiguration() {
           </Panel>
 
           <Panel className="p-5">
-            <h2 className="text-lg font-semibold text-slate-950">Required annotator fields</h2>
+            <h2 className="text-lg font-semibold text-neutral-950">Required annotator fields</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <CheckboxRow
                 checked={project.requiredFields.preferenceStrength}
@@ -253,8 +253,8 @@ export function ProjectConfiguration() {
           </Panel>
 
           <Panel className="p-5">
-            <h2 className="text-lg font-semibold text-slate-950">Seeded demo task</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="text-lg font-semibold text-neutral-950">Seeded demo task</h2>
+            <p className="mt-1 text-sm text-neutral-600">
               This prompt and response pair powers the preview and the first annotation task.
             </p>
             <div className="mt-5 grid gap-5">
@@ -309,7 +309,7 @@ export function ProjectConfiguration() {
           ) : null}
 
           <Panel className="p-5">
-            <h2 className="text-base font-semibold text-slate-950">Generated UI schema</h2>
+            <h2 className="text-base font-semibold text-neutral-950">Generated UI schema</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <SchemaRow label="Objective" value={objectiveLabels[project.objective]} />
               <SchemaRow label="Task type" value={taskTypeLabels[project.taskType]} />
@@ -320,7 +320,7 @@ export function ProjectConfiguration() {
           </Panel>
 
           <Panel className="p-5">
-            <h2 className="text-base font-semibold text-slate-950">Annotator fields</h2>
+            <h2 className="text-base font-semibold text-neutral-950">Annotator fields</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {project.requiredFields.preferenceStrength ? <Badge tone="blue">Strength</Badge> : null}
               {project.requiredFields.rationale ? <Badge tone="blue">Rationale</Badge> : null}
@@ -356,11 +356,11 @@ function CheckboxRow({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label className="flex min-h-12 items-center justify-between gap-4 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800">
+    <label className="flex min-h-12 items-center justify-between gap-4 rounded-lg border border-[#e2ded6] bg-[#fffdf9] px-3 py-2 text-sm font-semibold text-neutral-800 transition duration-200 hover:bg-[#f6f4ef]">
       <span>{label}</span>
       <input
         checked={checked}
-        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+        className="h-4 w-4 rounded border-[#d9d5cd] text-[#202936] focus:ring-neutral-900/10"
         onChange={(event) => onChange(event.target.checked)}
         type="checkbox"
       />
@@ -371,8 +371,8 @@ function CheckboxRow({
 function SchemaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <dt className="text-slate-500">{label}</dt>
-      <dd className="font-semibold text-slate-900">{value}</dd>
+      <dt className="text-neutral-500">{label}</dt>
+      <dd className="font-semibold text-neutral-900">{value}</dd>
     </div>
   )
 }

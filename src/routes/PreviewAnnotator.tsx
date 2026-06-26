@@ -43,25 +43,25 @@ export function PreviewAnnotator() {
 
       <div className="grid gap-6 p-5 xl:grid-cols-[minmax(0,1fr)_320px] lg:p-8">
         <Panel className="overflow-hidden">
-          <div className="border-b border-slate-200 bg-slate-50 p-5">
+          <div className="border-b border-[#e2ded6] bg-[#f6f4ef] p-5">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={project.objective === 'safety' ? 'amber' : 'blue'}>
                 {objectiveLabels[project.objective]}
               </Badge>
               <Badge tone="slate">Config v{project.configVersion}</Badge>
             </div>
-            <h2 className="mt-4 text-2xl font-semibold text-slate-950">
+            <h2 className="mt-4 text-2xl font-semibold text-neutral-950">
               {objectiveQuestion(project.objective)}
             </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{taskInstructions(project)}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-600">{taskInstructions(project)}</p>
           </div>
 
           <div className="space-y-5 p-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-normal text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-normal text-neutral-500">
                 {project.turnFormat === 'multi_turn' ? 'Conversation prompt' : 'User prompt'}
               </p>
-              <p className="mt-2 rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-800">
+              <p className="mt-2 rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4 text-sm leading-6 text-neutral-800">
                 {project.samplePrompt}
               </p>
             </div>
@@ -71,17 +71,17 @@ export function PreviewAnnotator() {
               <ResponsePreview title="Response B" body={project.responseB} />
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <p className="text-sm font-semibold text-slate-900">Choice</p>
+            <div className="rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4">
+              <p className="text-sm font-semibold text-neutral-900">Choice</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" type="button">
+                <button className="rounded-md border border-[#d9d5cd] px-4 py-2 text-sm font-semibold text-neutral-700" type="button">
                   Response A
                 </button>
-                <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" type="button">
+                <button className="rounded-md border border-[#d9d5cd] px-4 py-2 text-sm font-semibold text-neutral-700" type="button">
                   Response B
                 </button>
                 {project.allowTie ? (
-                  <button className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" type="button">
+                  <button className="rounded-md border border-[#d9d5cd] px-4 py-2 text-sm font-semibold text-neutral-700" type="button">
                     Tie / Unsure
                   </button>
                 ) : null}
@@ -132,8 +132,8 @@ export function PreviewAnnotator() {
         </Panel>
 
         <Panel className="h-fit p-5">
-          <h2 className="text-base font-semibold text-slate-950">Output schema preview</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
+          <h2 className="text-base font-semibold text-neutral-950">Output schema preview</h2>
+          <p className="mt-2 text-sm leading-6 text-neutral-600">
             Saved records include prompt, responses, choice, optional labels, rationale, annotator ID, timestamp,
             and hidden model metadata.
           </p>
@@ -152,9 +152,9 @@ export function PreviewAnnotator() {
 
 function ResponsePreview({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <p className="text-sm font-semibold text-slate-950">{title}</p>
-      <p className="mt-3 text-sm leading-6 text-slate-700">{body}</p>
+    <div className="rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4">
+      <p className="text-sm font-semibold text-neutral-950">{title}</p>
+      <p className="mt-3 text-sm leading-6 text-neutral-700">{body}</p>
     </div>
   )
 }
@@ -162,7 +162,7 @@ function ResponsePreview({ title, body }: { title: string; body: string }) {
 function PreviewField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-slate-800">{label}</span>
+      <span className="text-sm font-semibold text-neutral-800">{label}</span>
       <div className="mt-2">{children}</div>
     </label>
   )
@@ -170,7 +170,7 @@ function PreviewField({ label, children }: { label: string; children: React.Reac
 
 function SchemaChip({ label }: { label: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700">
+    <div className="rounded-md border border-[#e2ded6] bg-[#f6f4ef] px-3 py-2 font-mono text-xs text-neutral-700">
       {label}
     </div>
   )

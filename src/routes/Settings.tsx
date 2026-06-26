@@ -20,14 +20,14 @@ export function Settings() {
       />
       <div className="grid gap-6 p-5 xl:grid-cols-[minmax(0,1fr)_360px] lg:p-8">
         <Panel className="p-5">
-          <h2 className="text-lg font-semibold text-slate-950">Prototype scope</h2>
+          <h2 className="text-lg font-semibold text-neutral-950">Prototype scope</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <ScopeItem label="Persistence" value="localStorage" />
             <ScopeItem label="Authentication" value="Out of scope" />
             <ScopeItem label="Live LLM calls" value="Out of scope" />
             <ScopeItem label="Model training" value="Out of scope" />
           </div>
-          <p className="mt-5 text-sm leading-6 text-slate-600">
+          <p className="mt-5 text-sm leading-6 text-neutral-600">
             RLHF Studio stores project configurations and annotation results in the browser for this v1 prototype.
           </p>
         </Panel>
@@ -35,8 +35,8 @@ export function Settings() {
         <Panel className="p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-950">Reset demo data</h2>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
+              <h2 className="text-lg font-semibold text-neutral-950">Reset demo data</h2>
+              <p className="mt-1 text-sm leading-6 text-neutral-600">
                 Restore the two seeded projects and remove submitted annotations.
               </p>
             </div>
@@ -59,9 +59,9 @@ export function Settings() {
 
 function ScopeItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-normal text-slate-500">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+    <div className="rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-4">
+      <p className="text-xs font-semibold uppercase tracking-normal text-neutral-500">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-neutral-900">{value}</p>
     </div>
   )
 }

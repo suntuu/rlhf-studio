@@ -112,9 +112,9 @@ export function LiveAnnotation() {
         <div className="p-5 lg:p-8">
           <Panel className="mx-auto max-w-2xl p-6 text-center">
             <CheckCircle2 className="mx-auto text-green-600" size={46} aria-hidden="true" />
-            <h2 className="mt-4 text-2xl font-semibold text-slate-950">Annotation submitted</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Record ID <span className="font-mono text-slate-800">{submittedId}</span> is stored in localStorage.
+            <h2 className="mt-4 text-2xl font-semibold text-neutral-950">Annotation submitted</h2>
+            <p className="mt-2 text-sm leading-6 text-neutral-600">
+              Record ID <span className="font-mono text-neutral-800">{submittedId}</span> is stored in localStorage.
             </p>
             <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
               <Button onClick={() => resetForm((taskIndex + 1) % tasks.length)}>
@@ -148,14 +148,14 @@ export function LiveAnnotation() {
               </Badge>
               <Badge tone="slate">Config v{project.configVersion}</Badge>
             </div>
-            <h1 className="mt-4 text-2xl font-semibold text-slate-950">
+            <h1 className="mt-4 text-2xl font-semibold text-neutral-950">
               {objectiveQuestion(project.objective)}
             </h1>
-            <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-normal text-slate-500">
+            <div className="mt-5 rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-4">
+              <p className="text-xs font-semibold uppercase tracking-normal text-neutral-500">
                 {project.turnFormat === 'multi_turn' ? 'Conversation prompt' : 'User prompt'}
               </p>
-              <p className="mt-2 text-sm leading-6 text-slate-800">{task.prompt}</p>
+              <p className="mt-2 text-sm leading-6 text-neutral-800">{task.prompt}</p>
             </div>
           </Panel>
 
@@ -165,7 +165,7 @@ export function LiveAnnotation() {
           </div>
 
           <Panel className="p-5">
-            <h2 className="text-base font-semibold text-slate-950">Choose the better response</h2>
+            <h2 className="text-base font-semibold text-neutral-950">Choose the better response</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               <ChoiceButton
                 active={chosenResponse === 'response_a'}
@@ -190,7 +190,7 @@ export function LiveAnnotation() {
 
         <aside className="space-y-4">
           <Panel className="p-5">
-            <h2 className="text-base font-semibold text-slate-950">Required feedback</h2>
+            <h2 className="text-base font-semibold text-neutral-950">Required feedback</h2>
             <div className="mt-4 space-y-4">
               {project.requiredFields.preferenceStrength ? (
                 <Field label="Preference strength">
@@ -256,7 +256,7 @@ export function LiveAnnotation() {
           </Button>
 
           {!isValid ? (
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 text-neutral-600">
               Submit becomes available after the required choice and feedback fields are complete.
             </p>
           ) : null}
@@ -268,9 +268,9 @@ export function LiveAnnotation() {
 
 function AnswerCard({ title, body, selected }: { title: string; body: string; selected: boolean }) {
   return (
-    <Panel className={`p-5 ${selected ? 'border-blue-500 ring-4 ring-blue-100' : ''}`}>
-      <p className="text-sm font-semibold text-slate-950">{title}</p>
-      <p className="mt-3 text-sm leading-6 text-slate-700">{body}</p>
+    <Panel className={`p-5 ${selected ? 'border-[#202936] ring-4 ring-neutral-900/10' : ''}`}>
+      <p className="text-sm font-semibold text-neutral-950">{title}</p>
+      <p className="mt-3 text-sm leading-6 text-neutral-700">{body}</p>
     </Panel>
   )
 }
@@ -278,10 +278,10 @@ function AnswerCard({ title, body, selected }: { title: string; body: string; se
 function ChoiceButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
     <button
-      className={`rounded-md border px-4 py-2 text-sm font-semibold transition ${
+      className={`rounded-lg border px-4 py-2 text-sm font-semibold transition duration-200 active:scale-[0.98] ${
         active
-          ? 'border-blue-600 bg-blue-600 text-white'
-          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+          ? 'border-[#202936] bg-[#202936] text-white shadow-[0_10px_22px_rgba(32,41,54,0.14)]'
+          : 'border-[#d9d5cd] bg-[#fffdf9] text-neutral-700 hover:bg-[#f3f1eb]'
       }`}
       onClick={onClick}
       type="button"
@@ -294,7 +294,7 @@ function ChoiceButton({ active, label, onClick }: { active: boolean; label: stri
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-slate-800">{label}</span>
+      <span className="text-sm font-semibold text-neutral-800">{label}</span>
       <div className="mt-2">{children}</div>
     </label>
   )
