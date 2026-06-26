@@ -8,7 +8,7 @@ This product is for training-data creation only. It does not train models, fine-
 
 ## Live Demo
 
-Live URL: <add Vercel URL here>
+Live URL: https://rlhf-studio-nu.vercel.app/
 
 ## What the Prototype Demonstrates
 
