@@ -71,7 +71,7 @@ Open task -> Read instructions -> Review prompt and responses -> Make judgment -
 
 Implemented in v1:
 
-- Dashboard with seeded projects and metrics
+- Dashboard with empty-state project table and metrics
 - Project configuration form
 - Methodology presets
 - Helpfulness comparison preset
@@ -88,9 +88,9 @@ Implemented in v1:
 - Export scope option for all records or approved / accepted records only
 - JSONL export
 - CSV export
-- Reset demo data control
+- Clear workspace data control
 
-The prototype uses seeded prompts/responses, multi-annotator demo records, and localStorage to prove the core workflow without adding backend dependency. This keeps the demo focused on product behavior: configuration, annotation, lightweight quality review, persistence, and export.
+The prototype starts with no saved projects and uses seeded prompts/responses inside configurable tasks to prove the core workflow without adding backend dependency. This keeps the demo focused on product behavior: configuration, annotation, lightweight quality review, persistence, and export.
 
 Not implemented in v1:
 
@@ -429,7 +429,7 @@ flowchart LR
 Five-minute interview demo script:
 
 1. Problem framing: "RLHF teams need high-quality human feedback data, but each methodology has different task requirements. RLHF Studio solves this by turning configuration into an annotation UI and export schema."
-2. Show dashboard: Point out seeded helpfulness and safety projects, project metrics, and the training-data-only scope note.
+2. Show dashboard: Point out the empty project state, project metrics, and the training-data-only scope note.
 3. Configure helpfulness project: Open create/configure, choose the Meta-style helpfulness preset, and show that objective, task type, required fields, and sample content are controlled by configuration.
 4. Preview generated task: Open preview and show "Which response is more helpful?" with only the fields required by that configuration.
 5. Submit annotation: Open live task, choose a response, fill preference strength, confidence, and rationale, then submit.

@@ -79,25 +79,3 @@ a:not([class]) {
   color: #ffffff;
   background: #1f2937;
 }
-
-.metric-sparkline {
-  width: 76px;
-  height: 30px;
-  color: #1f8b75;
-}
-
-.metric-sparkline[data-tone='amber'] {
-  color: #c17a24;
-}
-
-.metric-sparkline[data-tone='green'] {
-  color: #1f8b75;
-}
-
-.metric-sparkline[data-tone='blue'] {
-  color: #2776a8;
-}
-
-.metric-sparkline[data-tone='red'] {
-  color: #d14c4c;
-}

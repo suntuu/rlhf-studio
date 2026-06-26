@@ -1,9 +1,8 @@
-import { cloneDefaultAnnotations, cloneDefaultProjects } from '../data/demoData'
 import type { AnnotationResult, ProjectConfig, ReviewerDecision } from '../types'
 
-const projectsKey = 'rlhf-studio.projects.v1'
-const annotationsKey = 'rlhf-studio.annotations.v1'
-const reviewDecisionsKey = 'rlhf-studio.review-decisions.v1'
+const projectsKey = 'rlhf-studio.projects.v2'
+const annotationsKey = 'rlhf-studio.annotations.v2'
+const reviewDecisionsKey = 'rlhf-studio.review-decisions.v2'
 
 function canUseStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -32,23 +31,17 @@ function writeJson<T>(key: string, value: T) {
   }
 }
 
-function ensureSeededProjects() {
+function ensureWorkspaceStorage() {
   if (!canUseStorage()) {
     return
   }
 
   if (!window.localStorage.getItem(projectsKey)) {
-    writeJson(projectsKey, cloneDefaultProjects())
+    writeJson(projectsKey, [])
   }
 
   if (!window.localStorage.getItem(annotationsKey)) {
-    writeJson(annotationsKey, cloneDefaultAnnotations())
-  } else {
-    const annotations = readJson<AnnotationResult[]>(annotationsKey, [])
-
-    if (annotations.length === 0) {
-      writeJson(annotationsKey, cloneDefaultAnnotations())
-    }
+    writeJson(annotationsKey, [])
   }
 
   if (!window.localStorage.getItem(reviewDecisionsKey)) {
@@ -57,8 +50,8 @@ function ensureSeededProjects() {
 }
 
 export function getProjects(): ProjectConfig[] {
-  ensureSeededProjects()
-  return readJson(projectsKey, cloneDefaultProjects())
+  ensureWorkspaceStorage()
+  return readJson(projectsKey, [])
 }
 
 export function saveProject(project: ProjectConfig): ProjectConfig {
@@ -85,7 +78,7 @@ export function getProjectById(id: string): ProjectConfig | undefined {
 }
 
 export function getAnnotations(): AnnotationResult[] {
-  ensureSeededProjects()
+  ensureWorkspaceStorage()
   return readJson<AnnotationResult[]>(annotationsKey, [])
 }
 
@@ -99,7 +92,7 @@ export function getAnnotationsByProject(projectId: string): AnnotationResult[] {
 }
 
 export function getReviewDecisions(projectId?: string): ReviewerDecision[] {
-  ensureSeededProjects()
+  ensureWorkspaceStorage()
   const decisions = readJson<ReviewerDecision[]>(reviewDecisionsKey, [])
 
   if (!projectId) {
@@ -122,8 +115,8 @@ export function saveReviewDecision(decision: ReviewerDecision) {
   writeJson(reviewDecisionsKey, nextDecisions)
 }
 
-export function resetDemoData() {
-  writeJson(projectsKey, cloneDefaultProjects())
-  writeJson(annotationsKey, cloneDefaultAnnotations())
+export function clearWorkspaceData() {
+  writeJson(projectsKey, [])
+  writeJson(annotationsKey, [])
   writeJson(reviewDecisionsKey, [])
 }

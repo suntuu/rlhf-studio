@@ -115,11 +115,13 @@ export function MetricCard({
   value,
   help,
   tone = 'slate',
+  visualization,
 }: {
   label: string
   value: string | number
   help: string
   tone?: 'slate' | 'blue' | 'green' | 'amber'
+  visualization?: ReactNode
 }) {
   const toneStyles = {
     slate: 'bg-[#f2f0eb] text-neutral-600',
@@ -137,8 +139,8 @@ export function MetricCard({
       </div>
       <div className="relative mt-4 flex items-end justify-between gap-3">
         <p className="text-3xl font-semibold text-neutral-950">{value}</p>
-        <MiniSparkline tone={tone} />
       </div>
+      {visualization ? <div className="relative mt-4">{visualization}</div> : null}
     </Panel>
   )
 }
@@ -200,26 +202,5 @@ export function FormLabel({
       {hint ? <span className="ml-2 text-xs font-medium text-neutral-500">{hint}</span> : null}
       <div className="mt-2">{children}</div>
     </label>
-  )
-}
-
-function MiniSparkline({ tone }: { tone: 'slate' | 'blue' | 'green' | 'amber' }) {
-  return (
-    <svg
-      className="metric-sparkline"
-      data-tone={tone}
-      viewBox="0 0 76 30"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M3 24H11L18 10L28 17L36 7L47 20L57 12L66 23L73 15"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M3 24H11L18 10L28 17L36 7L47 20L57 12L66 23L73 15V30H3V24Z" fill="currentColor" opacity="0.08" />
-    </svg>
   )
 }

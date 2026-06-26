@@ -82,4 +82,4 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 
 ## Build Notes
 
-The prototype uses seeded prompts and responses to keep the demo focused on the RLHF data-collection workflow. localStorage is used to keep the prototype reliable and easy to run.
+The workspace starts with no saved projects. The prototype still uses seeded prompts and responses inside configurable tasks, while localStorage keeps user-created projects and annotations across refreshes.

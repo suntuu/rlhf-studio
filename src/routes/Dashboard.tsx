@@ -2,24 +2,47 @@ import { ArrowRight, BarChart3, FileDown, PencilLine, PlayCircle, Plus } from 'l
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { objectiveLabels } from '../data/demoData'
-import { getAnnotations, getProjects } from '../lib/storage'
-import type { AnnotationResult, ProjectConfig } from '../types'
+import { buildQualityExportRecords, getQualityMetrics, getTaskQualitySummaries } from '../lib/quality'
+import { getAnnotations, getProjects, getReviewDecisions } from '../lib/storage'
+import type { AnnotationResult, ProjectConfig, ReviewerDecision } from '../types'
 import { Badge, InlineEmptyState, LinkButton, MetricCard, PageHeader, Panel } from '../components/UI'
+
+type SegmentTone = 'blue' | 'green' | 'amber' | 'slate' | 'red'
+
+interface BreakdownSegment {
+  label: string
+  value: number
+  tone: SegmentTone
+}
 
 export function Dashboard() {
   const [projects, setProjects] = useState<ProjectConfig[]>([])
   const [annotations, setAnnotations] = useState<AnnotationResult[]>([])
+  const [reviewDecisions, setReviewDecisions] = useState<ReviewerDecision[]>([])
 
   useEffect(() => {
     setProjects(getProjects())
     setAnnotations(getAnnotations())
+    setReviewDecisions(getReviewDecisions())
   }, [])
 
+  const publishedProjects = projects.filter((project) => project.status === 'published').length
+  const draftProjects = projects.length - publishedProjects
   const responseA = annotations.filter((item) => item.chosen_response === 'response_a').length
   const responseB = annotations.filter((item) => item.chosen_response === 'response_b').length
-  const nonTieTotal = responseA + responseB
-  const avgAgreement =
-    annotations.length === 0 ? 'No data' : `${Math.round((nonTieTotal / annotations.length) * 100)}%`
+  const tieUnsure = annotations.filter((item) => item.chosen_response === 'tie_unsure').length
+  const taskSummaries = getTaskQualitySummaries(annotations, reviewDecisions)
+  const qualityMetrics = getQualityMetrics(annotations, taskSummaries)
+  const exportRecords = buildQualityExportRecords(annotations, taskSummaries)
+  const readyExportRecords = exportRecords.filter(
+    (record) =>
+      record.review_status === 'accepted' ||
+      (record.review_status === 'approved' && record.reviewer_final_label !== 'discard'),
+  ).length
+  const reviewQueueRecords = exportRecords.length - readyExportRecords
+  const acceptedTasks = taskSummaries.filter((summary) => summary.status === 'accepted').length
+  const approvedTasks = taskSummaries.filter((summary) => summary.status === 'approved').length
+  const needsReviewTasks = taskSummaries.filter((summary) => summary.status === 'needs_review').length
 
   return (
     <>
@@ -30,19 +53,78 @@ export function Dashboard() {
 
       <div className="space-y-6 p-5 lg:p-8">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Active projects" value={projects.length} help="Configured" tone="blue" />
+          <MetricCard
+            label="Active projects"
+            value={projects.length}
+            help={projects.length === 0 ? 'None yet' : `${publishedProjects} published`}
+            tone="blue"
+            visualization={
+              <MetricBreakdown
+                ariaLabel="Project status breakdown"
+                emptyLabel="Create a project to start tracking workflow status."
+                segments={[
+                  { label: 'Published', value: publishedProjects, tone: 'green' },
+                  { label: 'Draft', value: draftProjects, tone: 'slate' },
+                ]}
+                total={projects.length}
+              />
+            }
+          />
           <MetricCard
             label="Completed annotations"
             value={annotations.length}
-            help="Saved locally"
+            help={annotations.length === 0 ? 'No votes' : `${responseA + responseB} decisive`}
             tone="green"
+            visualization={
+              <MetricBreakdown
+                ariaLabel="Annotation choice distribution"
+                emptyLabel="Submitted annotations will show response preference distribution."
+                segments={[
+                  { label: 'Response A', value: responseA, tone: 'blue' },
+                  { label: 'Response B', value: responseB, tone: 'green' },
+                  { label: 'Tie', value: tieUnsure, tone: 'amber' },
+                ]}
+                total={annotations.length}
+              />
+            }
           />
-          <MetricCard label="Avg agreement" value={avgAgreement} help="Preference signal" />
+          <MetricCard
+            label="Avg agreement"
+            value={qualityMetrics.agreementRate}
+            help={taskSummaries.length === 0 ? 'No tasks' : formatCount(taskSummaries.length, 'task')}
+            visualization={
+              <MetricBreakdown
+                ariaLabel="Task review status breakdown"
+                emptyLabel="Agreement appears after at least one submitted task."
+                segments={[
+                  { label: 'Accepted', value: acceptedTasks, tone: 'green' },
+                  { label: 'Approved', value: approvedTasks, tone: 'blue' },
+                  { label: 'Review', value: needsReviewTasks, tone: 'amber' },
+                ]}
+                total={taskSummaries.length}
+              />
+            }
+          />
           <MetricCard
             label="Export-ready records"
-            value={annotations.length}
-            help="JSONL / CSV"
+            value={readyExportRecords}
+            help={
+              exportRecords.length === 0
+                ? 'No records'
+                : formatCount(qualityMetrics.readyForExport, 'ready task')
+            }
             tone="amber"
+            visualization={
+              <MetricBreakdown
+                ariaLabel="Export readiness breakdown"
+                emptyLabel="Records become export-ready after accepted or approved task quality checks."
+                segments={[
+                  { label: 'Ready', value: readyExportRecords, tone: 'green' },
+                  { label: 'Review', value: reviewQueueRecords, tone: 'amber' },
+                ]}
+                total={exportRecords.length}
+              />
+            }
           />
         </div>
 
@@ -179,4 +261,71 @@ export function Dashboard() {
       </div>
     </>
   )
+}
+
+function MetricBreakdown({
+  ariaLabel,
+  emptyLabel,
+  segments,
+  total,
+}: {
+  ariaLabel: string
+  emptyLabel: string
+  segments: BreakdownSegment[]
+  total: number
+}) {
+  const visibleSegments = segments.filter((segment) => segment.value > 0)
+
+  if (total === 0) {
+    return <p className="min-h-10 text-xs font-medium leading-5 text-neutral-500">{emptyLabel}</p>
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        aria-label={ariaLabel}
+        className="flex h-2 overflow-hidden rounded-full bg-[#ebe7df]"
+        role="img"
+      >
+        {visibleSegments.map((segment) => (
+          <span
+            className={segmentStyles[segment.tone]}
+            key={segment.label}
+            style={{ width: `${(segment.value / total) * 100}%` }}
+          />
+        ))}
+      </div>
+      <div className="grid gap-1">
+        {segments.map((segment) => (
+          <div className="flex items-center justify-between gap-2 text-xs" key={segment.label}>
+            <span className="flex min-w-0 items-center gap-1.5 text-neutral-600">
+              <span className={`h-2 w-2 shrink-0 rounded-full ${segmentStyles[segment.tone]}`} />
+              <span className="truncate">{segment.label}</span>
+            </span>
+            <span className="font-semibold text-neutral-800">{formatSegment(segment.value, total)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function formatSegment(value: number, total: number) {
+  if (value === 0) {
+    return '0'
+  }
+
+  return `${value} (${Math.round((value / total) * 100)}%)`
+}
+
+function formatCount(value: number, singular: string) {
+  return `${value} ${value === 1 ? singular : `${singular}s`}`
+}
+
+const segmentStyles: Record<SegmentTone, string> = {
+  blue: 'bg-[#2776a8]',
+  green: 'bg-[#1f8b75]',
+  amber: 'bg-[#c17a24]',
+  slate: 'bg-[#8c877d]',
+  red: 'bg-[#d14c4c]',
 }

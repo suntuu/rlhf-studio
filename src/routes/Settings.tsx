@@ -1,21 +1,21 @@
 import { RotateCcw } from 'lucide-react'
 import { useState } from 'react'
-import { resetDemoData } from '../lib/storage'
+import { clearWorkspaceData } from '../lib/storage'
 import { Badge, Button, LinkButton, PageHeader, Panel } from '../components/UI'
 
 export function Settings() {
   const [message, setMessage] = useState('')
 
   function reset() {
-    resetDemoData()
-    setMessage('Demo data reset. Seed projects and multi-annotation demo records were restored.')
+    clearWorkspaceData()
+    setMessage('Workspace data cleared. Projects, annotations, and review decisions are empty.')
   }
 
   return (
     <>
       <PageHeader
         title="Settings"
-        description="Local prototype controls for demo reset and scope visibility."
+        description="Local prototype controls for workspace data and scope visibility."
         actions={<LinkButton to="/">Back to projects</LinkButton>}
       />
       <div className="grid gap-6 p-5 xl:grid-cols-[minmax(0,1fr)_360px] lg:p-8">
@@ -35,16 +35,16 @@ export function Settings() {
         <Panel className="p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-950">Reset demo data</h2>
+              <h2 className="text-lg font-semibold text-neutral-950">Clear workspace data</h2>
               <p className="mt-1 text-sm leading-6 text-neutral-600">
-                Restore the two seeded projects and sample multi-annotation records.
+                Remove saved projects, annotations, and review decisions from this browser.
               </p>
             </div>
             <Badge tone="amber">Debug</Badge>
           </div>
           <Button onClick={reset} variant="danger" className="mt-5 w-full">
             <RotateCcw size={16} aria-hidden="true" />
-            Reset demo data
+            Clear workspace data
           </Button>
           {message ? (
             <p className="mt-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-800">
