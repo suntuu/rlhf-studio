@@ -1,15 +1,19 @@
-import { Eye, Save, UploadCloud } from 'lucide-react'
+import { CheckCircle2, Eye, Save, UploadCloud } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
+  SEEDED_PROMPT_PACKS,
+  applySeedPack,
   applyPreset,
   createBlankProject,
+  getProjectSeedPack,
+  getPromptBatchChecks,
   methodologyLabels,
   objectiveLabels,
 } from '../data/demoData'
 import { getProjectById, saveProject } from '../lib/storage'
-import type { MethodologyPreset, Objective, ProjectConfig, TaskType, TurnFormat } from '../types'
+import type { MethodologyPreset, Objective, ProjectConfig, PromptSourceOption, TaskType, TurnFormat } from '../types'
 import { Badge, Button, FormLabel, LinkButton, PageHeader, Panel } from '../components/UI'
 import { inputClass, textareaClass } from '../lib/styles'
 
@@ -23,6 +27,17 @@ const turnFormatLabels: Record<TurnFormat, string> = {
   single_turn: 'Single-turn',
   multi_turn: 'Multi-turn',
 }
+
+const promptSourceOptions: {
+  value: PromptSourceOption
+  label: string
+  status: string
+  disabled?: boolean
+}[] = [
+  { value: 'seeded_prompt_pack', label: 'Seeded prompt pack', status: 'Supported in v1' },
+  { value: 'upload_jsonl_csv', label: 'Upload JSONL/CSV', status: 'Roadmap', disabled: true },
+  { value: 'annotator_created', label: 'Annotator-created prompts', status: 'Roadmap', disabled: true },
+]
 
 export function ProjectConfiguration() {
   const { id } = useParams()
@@ -39,6 +54,9 @@ export function ProjectConfiguration() {
 
   const [project, setProject] = useState<ProjectConfig>(initialProject)
   const [savedMessage, setSavedMessage] = useState('')
+  const selectedSeedPack = getProjectSeedPack(project)
+  const promptBatchChecks = getPromptBatchChecks(selectedSeedPack)
+  const promptBatchReady = promptBatchChecks.every((check) => check.passed)
 
   function update<K extends keyof ProjectConfig>(key: K, value: ProjectConfig[K]) {
     setProject((current) => ({ ...current, [key]: value }))
@@ -47,6 +65,10 @@ export function ProjectConfiguration() {
   function handlePresetChange(event: ChangeEvent<HTMLSelectElement>) {
     const preset = event.target.value as MethodologyPreset
     setProject((current) => applyPreset(current, preset))
+  }
+
+  function handleSeedPackChange(event: ChangeEvent<HTMLSelectElement>) {
+    setProject((current) => applySeedPack(current, event.target.value))
   }
 
   function persist(status: ProjectConfig['status']) {
@@ -253,49 +275,78 @@ export function ProjectConfiguration() {
           </Panel>
 
           <Panel className="p-5">
-            <h2 className="text-lg font-semibold text-neutral-950">Seeded demo task</h2>
-            <p className="mt-1 text-sm text-neutral-600">
-              This prompt and response pair powers the preview and the first annotation task.
+            <h2 className="text-lg font-semibold text-neutral-950">Prompt Source</h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-600">
+              Prompts can come from uploaded client data, real user queries, annotator-created prompts, or seeded
+              demo packs. V1 uses seeded packs to keep the prototype reliable.
             </p>
-            <div className="mt-5 grid gap-5">
-              <FormLabel label={project.turnFormat === 'multi_turn' ? 'Sample conversation prompt' : 'Sample prompt'}>
-                <textarea
-                  className={textareaClass}
-                  onChange={(event) => update('samplePrompt', event.target.value)}
-                  value={project.samplePrompt}
-                />
-              </FormLabel>
-              <div className="grid gap-5 lg:grid-cols-2">
-                <FormLabel label="Response A">
-                  <textarea
-                    className={textareaClass}
-                    onChange={(event) => update('responseA', event.target.value)}
-                    value={project.responseA}
-                  />
+
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {promptSourceOptions.map((option) => (
+                <button
+                  className={`rounded-lg border p-3 text-left transition duration-200 ${
+                    project.promptSource === option.value
+                      ? 'border-[#202936] bg-[#f3f1eb] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
+                      : 'border-[#e2ded6] bg-[#fffdf9] hover:bg-[#f3f1eb]'
+                  } ${option.disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+                  disabled={option.disabled}
+                  key={option.value}
+                  onClick={() => update('promptSource', option.value)}
+                  type="button"
+                >
+                  <span className="block text-sm font-semibold text-neutral-900">{option.label}</span>
+                  <span className="mt-1 block text-xs text-neutral-500">{option.status}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div>
+                <FormLabel label="Seed pack">
+                  <select
+                    className={inputClass}
+                    onChange={handleSeedPackChange}
+                    value={selectedSeedPack.id}
+                  >
+                    {SEEDED_PROMPT_PACKS.map((pack) => (
+                      <option key={pack.id} value={pack.id}>
+                        {pack.name}
+                      </option>
+                    ))}
+                  </select>
                 </FormLabel>
-                <FormLabel label="Response B">
-                  <textarea
-                    className={textareaClass}
-                    onChange={(event) => update('responseB', event.target.value)}
-                    value={project.responseB}
-                  />
-                </FormLabel>
+                <p className="mt-3 text-sm leading-6 text-neutral-600">{selectedSeedPack.description}</p>
+
+                <div className="mt-4 rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-4">
+                  <p className="text-sm font-semibold text-neutral-900">Coverage preview</p>
+                  <p className="mt-2 text-sm leading-6 text-neutral-700">
+                    {formatCoverageSummary(selectedSeedPack)}
+                  </p>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {getCoverageRows(selectedSeedPack).map((row) => (
+                      <CoverageRow key={row.label} label={row.label} value={row.value} />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-5 md:grid-cols-2">
-                <FormLabel label="Response A model version" hint="Hidden from annotator">
-                  <input
-                    className={inputClass}
-                    onChange={(event) => update('responseAModel', event.target.value)}
-                    value={project.responseAModel}
-                  />
-                </FormLabel>
-                <FormLabel label="Response B model version" hint="Hidden from annotator">
-                  <input
-                    className={inputClass}
-                    onChange={(event) => update('responseBModel', event.target.value)}
-                    value={project.responseBModel}
-                  />
-                </FormLabel>
+
+              <div className="rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-neutral-950">Prompt batch checks</h3>
+                  {promptBatchReady ? <Badge tone="green">Prompt batch ready</Badge> : <Badge tone="amber">Review</Badge>}
+                </div>
+                <div className="mt-4 space-y-3">
+                  {promptBatchChecks.map((check) => (
+                    <div className="flex items-start gap-2 text-sm" key={check.id}>
+                      <CheckCircle2
+                        aria-hidden="true"
+                        className={check.passed ? 'text-green-600' : 'text-neutral-400'}
+                        size={16}
+                      />
+                      <span className={check.passed ? 'text-neutral-800' : 'text-neutral-500'}>{check.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </Panel>
@@ -312,6 +363,8 @@ export function ProjectConfiguration() {
             <h2 className="text-base font-semibold text-neutral-950">Generated UI schema</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <SchemaRow label="Objective" value={objectiveLabels[project.objective]} />
+              <SchemaRow label="Prompt source" value="Seeded prompt pack" />
+              <SchemaRow label="Seed pack" value={selectedSeedPack.name} />
               <SchemaRow label="Task type" value={taskTypeLabels[project.taskType]} />
               <SchemaRow label="Turn format" value={turnFormatLabels[project.turnFormat]} />
               <SchemaRow label="Tie allowed" value={project.allowTie ? 'Yes' : 'No'} />
@@ -375,4 +428,64 @@ function SchemaRow({ label, value }: { label: string; value: string }) {
       <dd className="font-semibold text-neutral-900">{value}</dd>
     </div>
   )
+}
+
+function CoverageRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-normal text-neutral-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-neutral-900">{value}</p>
+    </div>
+  )
+}
+
+function getCoverageRows(pack: (typeof SEEDED_PROMPT_PACKS)[number]) {
+  return [
+    { label: 'Total tasks', value: String(pack.tasks.length) },
+    { label: 'Domains included', value: formatList(getUniqueValues(pack.tasks.map((task) => task.domain)), 4) },
+    { label: 'Difficulty distribution', value: formatDifficultyDistribution(pack) },
+    {
+      label: 'Risk categories included',
+      value: formatList(getUniqueValues(pack.tasks.map((task) => task.risk_category)), 4),
+    },
+    {
+      label: 'Model pairs included',
+      value: formatList(
+        getUniqueValues(pack.tasks.map((task) => `${task.response_a_model} vs ${task.response_b_model}`)),
+        3,
+      ),
+    },
+    {
+      label: 'Objective coverage',
+      value: formatList(getUniqueValues(pack.tasks.map((task) => task.expected_objective)), 4),
+    },
+  ]
+}
+
+function formatCoverageSummary(pack: (typeof SEEDED_PROMPT_PACKS)[number]) {
+  const domainCount = getUniqueValues(pack.tasks.map((task) => task.domain)).length
+  const modelPairs = getUniqueValues(pack.tasks.map((task) => `${task.response_a_model} vs ${task.response_b_model}`))
+
+  return `${pack.tasks.length} tasks · ${domainCount} domains · ${formatDifficultyDistribution(pack)} · ${formatList(modelPairs, 2)}`
+}
+
+function formatDifficultyDistribution(pack: (typeof SEEDED_PROMPT_PACKS)[number]) {
+  const counts = pack.tasks.reduce(
+    (acc, task) => ({ ...acc, [task.difficulty]: acc[task.difficulty] + 1 }),
+    { easy: 0, medium: 0, hard: 0 },
+  )
+
+  return `${counts.easy} easy / ${counts.medium} medium / ${counts.hard} hard`
+}
+
+function getUniqueValues(values: string[]) {
+  return Array.from(new Set(values))
+}
+
+function formatList(values: string[], limit: number) {
+  if (values.length <= limit) {
+    return values.join(', ')
+  }
+
+  return `${values.slice(0, limit).join(', ')} +${values.length - limit} more`
 }

@@ -6,7 +6,7 @@ RLHF Studio is a configurable RLHF training-data collection prototype. Admins co
 
 This product is for training-data creation only. It does not train models, fine-tune models, manage reward models, or run training pipelines.
 
-v1 also includes a lightweight quality review simulation with agreement scoring, a review queue, and reviewer adjudication saved in localStorage.
+v1 also includes seeded prompt packs, prompt metadata, coverage previews, batch readiness checks, and a lightweight quality review simulation with agreement scoring, a review queue, and reviewer adjudication saved in localStorage.
 
 ## Live Demo
 
@@ -17,6 +17,9 @@ Live URL: https://rlhf-studio-nu.vercel.app/
 - Dashboard for RLHF data-collection projects
 - Task configuration screen
 - Methodology presets
+- Seeded prompt packs for helpfulness, safety, accuracy, and mixed evaluation
+- Prompt metadata and batch coverage preview
+- Prompt batch readiness checks
 - Dynamic annotator preview generated from configuration
 - Live annotation task
 - Required-field validation
@@ -24,6 +27,7 @@ Live URL: https://rlhf-studio-nu.vercel.app/
 - Results table and detail view
 - Quality review queue with agreement scoring
 - Reviewer adjudication modal saved to localStorage
+- Export lineage fields for prompt source, seed pack, domain, difficulty, intent category, and risk category
 - JSONL export
 - CSV export
 
@@ -32,12 +36,13 @@ Live URL: https://rlhf-studio-nu.vercel.app/
 1. Open dashboard.
 2. Create or configure a helpfulness project.
 3. Select Meta-style helpfulness comparison.
-4. Preview generated annotator UI.
-5. Submit an annotation.
-6. Open results and review agreement scores.
-7. Adjudicate a low-confidence or disagreed task.
-8. Export all records or approved / accepted records only.
-9. Switch to safety preset to show that the annotator UI and output schema change based on configuration.
+4. Review the selected seeded prompt pack, coverage summary, and batch checks.
+5. Preview generated annotator UI.
+6. Submit annotations across the selected task batch.
+7. Open results and review agreement scores.
+8. Adjudicate a low-confidence or disagreed task.
+9. Export all records or approved / accepted records only.
+10. Switch to safety preset to show that the annotator UI, prompt pack, and output schema change based on configuration.
 
 ## How to Run Locally
 
@@ -57,10 +62,14 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 
 - Configuration-driven pairwise annotation
 - Helpfulness and safety presets
+- Seeded prompt packs and selectable task batches
+- Prompt metadata and coverage preview
+- Prompt batch readiness checks
 - Dynamic preview
 - Annotation submission
 - Results review with lightweight quality scoring
 - Reviewer adjudication simulation
+- Export lineage fields
 - JSONL/CSV export
 - localStorage persistence
 
@@ -70,6 +79,7 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 - Reward model training
 - Fine-tuning
 - Live model generation
+- Uploaded prompt sources in v1
 - Authentication
 - Enterprise roles
 - Backend database in v1
@@ -77,9 +87,9 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 ## Roadmap
 
 - P1: data quality — gold tasks, stronger reviewer workflows, annotator analytics
-- P2: operational scale — batches, task queues, assignment
-- P3: enterprise readiness — backend, RBAC, audit logs, integrations
+- P2: operational scale — uploaded JSONL/CSV prompt sources, annotator-created prompts, task queues, assignment
+- P3: enterprise readiness — backend, RBAC, audit logs, integrations, live response source integrations
 
 ## Build Notes
 
-The workspace starts with no saved projects. The prototype still uses seeded prompts and responses inside configurable tasks, while localStorage keeps user-created projects and annotations across refreshes.
+The workspace starts with no saved projects. The prototype uses seeded prompt packs and responses for reliable local demos, while localStorage keeps user-created projects, annotations, and per-project task progress across refreshes.

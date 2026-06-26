@@ -9,13 +9,19 @@ export type TaskType = 'pairwise' | 'rating' | 'rewrite'
 
 export type TurnFormat = 'single_turn' | 'multi_turn'
 
+export type PromptSourceOption = 'seeded_prompt_pack' | 'upload_jsonl_csv' | 'annotator_created'
+
+export type Difficulty = 'easy' | 'medium' | 'hard'
+
+export type ExpectedObjective = 'helpfulness' | 'safety' | 'accuracy' | 'rewrite'
+
 export type ProjectStatus = 'draft' | 'published'
 
 export type ChosenResponse = 'response_a' | 'response_b' | 'tie_unsure'
 
 export type ReviewFinalLabel = ChosenResponse | 'discard'
 
-export type ReviewStatus = 'accepted' | 'needs_review' | 'approved'
+export type ReviewStatus = 'accepted' | 'needs_review' | 'approved' | 'discarded'
 
 export interface RequiredFields {
   preferenceStrength: boolean
@@ -31,6 +37,8 @@ export interface ProjectConfig {
   status: ProjectStatus
   methodologyPreset: MethodologyPreset
   objective: Objective
+  promptSource: PromptSourceOption
+  selectedSeedPackId: string
   taskType: TaskType
   turnFormat: TurnFormat
   requiredFields: RequiredFields
@@ -55,6 +63,12 @@ export interface AnnotationResult {
   objective: Objective
   task_type: TaskType
   turn_format: TurnFormat
+  prompt_source: string
+  seed_pack: string
+  domain: string
+  difficulty: Difficulty
+  intent_category: string
+  risk_category: string
   prompt: string
   response_a: string
   response_b: string
@@ -87,13 +101,3 @@ export interface QualityExportFields {
 }
 
 export type QualityExportRecord = AnnotationResult & QualityExportFields
-
-export interface DemoTask {
-  id: string
-  objective: Objective
-  prompt: string
-  responseA: string
-  responseB: string
-  responseAModel: string
-  responseBModel: string
-}

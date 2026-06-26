@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary
 
-RLHF Studio is a configurable training-data collection platform for RLHF workflows. Admins define annotation projects, choose methodology presets, configure required feedback fields, preview the annotator experience, and export structured preference records. Annotators complete comparison tasks, provide required judgments, and submit records that can be reviewed and exported as JSONL or CSV. v1 includes a lightweight quality review simulation with agreement scoring and reviewer adjudication saved in localStorage.
+RLHF Studio is a configurable training-data collection platform for RLHF workflows. Admins define annotation projects, choose methodology presets, select seeded prompt packs, configure required feedback fields, preview the annotator experience, and export structured preference records. Annotators complete comparison tasks, provide required judgments, and submit records that can be reviewed and exported as JSONL or CSV. v1 includes prompt metadata, coverage previews, batch readiness checks, and a lightweight quality review simulation with agreement scoring and reviewer adjudication saved in localStorage.
 
 The current prototype proves the core product loop: configuration controls the annotator UI and output schema. It does not train models, tune models, deploy models, or manage training pipelines.
 
@@ -58,13 +58,13 @@ RLHF data collection should not require a new tool every time the methodology ch
 Admin journey:
 
 ```text
-Dashboard -> Create project -> Configure methodology -> Preview annotator UI -> Publish -> Review results -> Export dataset
+Dashboard -> Create project -> Configure methodology and prompt pack -> Preview annotator UI -> Publish -> Review results -> Export dataset
 ```
 
 Annotator journey:
 
 ```text
-Open task -> Read instructions -> Review prompt and responses -> Make judgment -> Add required fields -> Submit
+Open task -> Read instructions -> Review prompt and responses -> Make judgment -> Add required fields -> Submit -> Continue to next task
 ```
 
 ## 8. Implemented Prototype Scope
@@ -76,8 +76,12 @@ Implemented in v1:
 - Methodology presets
 - Helpfulness comparison preset
 - Safety comparison preset
+- Seeded prompt packs for helpfulness, safety, accuracy, and mixed evaluation
+- Prompt source controls with upload and annotator-created sources shown as roadmap options
+- Prompt metadata for domain, difficulty, intent category, risk category, prompt source, and seed pack
+- Prompt coverage preview and batch readiness checks
 - Dynamic preview generated from saved configuration
-- Live annotation task
+- Live annotation task that progresses through the selected seeded task batch
 - Required-field validation
 - localStorage persistence
 - Results table
@@ -86,11 +90,12 @@ Implemented in v1:
 - Quality Review Queue for disagreement and low-confidence review
 - Reviewer adjudication modal with localStorage persistence
 - Export scope option for all records or approved / accepted records only
+- Export lineage fields for prompt source, seed pack, domain, difficulty, intent category, and risk category
 - JSONL export
 - CSV export
 - Clear workspace data control
 
-The prototype starts with no saved projects and uses seeded prompts/responses inside configurable tasks to prove the core workflow without adding backend dependency. This keeps the demo focused on product behavior: configuration, annotation, lightweight quality review, persistence, and export.
+The prototype starts with no saved projects and uses seeded prompt packs to prove the core workflow without adding backend dependency. This keeps the demo focused on product behavior: configuration, prompt batch selection, annotation, lightweight quality review, persistence, and export.
 
 Not implemented in v1:
 
@@ -99,9 +104,11 @@ Not implemented in v1:
 - Role-based permissions
 - Production reviewer workflows
 - Gold tasks
-- Batch management
+- Uploaded/client batch management
 - Annotator assignment queues
 - Advanced agreement analytics beyond the lightweight simulation
+- Uploaded JSONL/CSV prompt sources
+- Annotator-created prompt creation workflows
 - Live LLM response generation
 - Model training or training pipeline management
 
@@ -111,6 +118,9 @@ Not implemented in v1:
 |---|---|---:|---|
 | Admin can create/configure project | Admin | Yes | Project form creates and updates `ProjectConfig` records |
 | Admin can select methodology preset | Admin | Yes | Meta-style helpfulness, Anthropic-style safety, and custom workflow are visible |
+| Admin can select seeded prompt pack | Admin | Yes | Presets choose default packs and admins can change the selected pack manually |
+| Admin can preview prompt coverage | Admin | Yes | Configuration shows task count, domains, difficulty, risks, model pairs, and objective coverage |
+| System can validate prompt batch readiness | System | Yes | Checks prompts, responses, model metadata, duplicate task IDs, and safety risk categories |
 | Admin can choose objective | Admin | Yes | Helpfulness, safety, accuracy, and custom objectives are available |
 | Admin can choose required annotator fields | Admin | Yes | Preference strength, rationale, safety labels, and confidence are configurable |
 | System renders annotator UI from configuration | System | Yes | Preview and live annotation screens conditionally render fields from `requiredFields` |
@@ -119,7 +129,7 @@ Not implemented in v1:
 | Admin can export JSONL/CSV | Admin | Yes | Exports are scoped to the selected project and can include all or approved / accepted records |
 | System can calculate agreement by task | System | Yes | Lightweight simulation groups annotations by `task_id` and calculates majority choice, agreement score, and review status |
 | Quality reviewer can adjudicate disagreements | Quality reviewer | Simulated | Reviewer decision and note are saved in localStorage |
-| Admin can manage batches | Admin | Roadmap | Planned for P2 operational scale |
+| Admin can manage uploaded batches | Admin | Roadmap | v1 supports seeded pack selection only; uploaded JSONL/CSV sources remain roadmap |
 | Admin can track annotator agreement | Admin / reviewer | Partial | v1 shows task-level agreement scoring; deeper analytics remain roadmap |
 
 ## 10. Non-Functional Requirements
@@ -130,7 +140,7 @@ Not implemented in v1:
 | Flexibility | Support different methodologies through configuration instead of custom screens | Implemented for pairwise helpfulness and safety workflows |
 | Adaptability | Allow methodology changes through presets, objectives, task type, turn format, and required fields | Partially implemented. Rating, rewrite, and full multi-turn logic are roadmap |
 | Reliability | Preserve saved projects and annotations across refreshes | Implemented through localStorage |
-| Auditability | Track config version, submitted timestamp, project ID, task ID, annotator ID, and model metadata | Implemented at the record level. Full audit logs are roadmap |
+| Auditability | Track config version, submitted timestamp, project ID, task ID, annotator ID, model metadata, prompt source, seed pack, domain, difficulty, intent category, and risk category | Implemented at the record level. Full audit logs are roadmap |
 | Security/privacy | Avoid unnecessary external calls and keep data local in the prototype | Implemented by design. Enterprise controls are roadmap |
 | Data quality | Enforce required fields and capture rationale, confidence, labels, and lightweight review state | Implemented for required fields, task-level agreement scoring, and simulated reviewer adjudication. Gold tasks and production review operations are roadmap |
 
@@ -154,6 +164,8 @@ Fields used in the current prototype:
 | `status` | `draft` or `published` | Project state |
 | `methodologyPreset` | `meta_helpfulness`, `anthropic_safety`, or `custom_workflow` | Preset that applies default workflow configuration |
 | `objective` | `helpfulness`, `safety`, `accuracy`, or `custom` | Drives task instructions and preview heading |
+| `promptSource` | `seeded_prompt_pack`, `upload_jsonl_csv`, or `annotator_created` | Selected prompt source mode. Only seeded prompt packs are enabled in v1 |
+| `selectedSeedPackId` | string | Active seeded prompt pack used for preview, annotation, and export lineage |
 | `taskType` | `pairwise`, `rating`, or `rewrite` | Defines annotation pattern. Only pairwise is fully implemented in v1 |
 | `turnFormat` | `single_turn` or `multi_turn` | Adjusts labels/copy. Full multi-turn chat logic is roadmap |
 | `requiredFields.preferenceStrength` | boolean | Requires preference strength selector |
@@ -162,11 +174,11 @@ Fields used in the current prototype:
 | `requiredFields.confidence` | boolean | Requires confidence selector |
 | `allowTie` | boolean | Enables tie / unsure choice |
 | `annotationsPerTask` | number | Target number of annotations per task |
-| `samplePrompt` | string | Seeded task prompt used in preview and first task |
-| `responseA` | string | Candidate response A |
-| `responseB` | string | Candidate response B |
-| `responseAModel` | string | Hidden model metadata for response A |
-| `responseBModel` | string | Hidden model metadata for response B |
+| `samplePrompt` | string | Compatibility field synced from the first task in the selected seed pack |
+| `responseA` | string | Compatibility field synced from selected seed task response A |
+| `responseB` | string | Compatibility field synced from selected seed task response B |
+| `responseAModel` | string | Compatibility field synced from selected seed task response A model metadata |
+| `responseBModel` | string | Compatibility field synced from selected seed task response B model metadata |
 | `createdAt` | ISO timestamp | Creation time |
 | `updatedAt` | ISO timestamp | Last update time |
 | `configVersion` | number | Version saved into annotation records |
@@ -187,6 +199,12 @@ Fields used in the current prototype:
 | `objective` | string | Helpfulness, safety, accuracy, or custom |
 | `task_type` | string | Pairwise, rating, or rewrite |
 | `turn_format` | string | Single-turn or multi-turn |
+| `prompt_source` | string | Source mode for the prompt, such as `seeded_prompt_pack` |
+| `seed_pack` | string | Seed pack identifier used to source the task |
+| `domain` | string | Domain metadata for coverage and filtering |
+| `difficulty` | `easy`, `medium`, or `hard` | Task difficulty metadata |
+| `intent_category` | string | Intent category metadata for the prompt |
+| `risk_category` | string | Risk category metadata, including `none` for benign tasks |
 | `prompt` | string | User prompt shown to annotator |
 | `response_a` | string | Candidate response A |
 | `response_b` | string | Candidate response B |
@@ -205,10 +223,10 @@ When exported from the Results screen, records are enriched with lightweight qua
 
 | Field | Type | Purpose |
 |---|---|---|
-| `agreement_score` | number | Rounded task-level agreement percentage |
+| `agreement_score` | number | Task-level agreement ratio, such as `1`, `0.67`, or `0.33` |
 | `majority_choice` | `response_a`, `response_b`, or `tie_unsure` | Majority label from grouped annotations |
-| `review_status` | `accepted`, `needs_review`, or `approved` | Current quality review status |
-| `reviewer_final_label` | `response_a`, `response_b`, `tie_unsure`, `discard`, or null | Reviewer adjudication result when approved |
+| `review_status` | `accepted`, `needs_review`, `approved`, or `discarded` | Current quality review status |
+| `reviewer_final_label` | `response_a`, `response_b`, `tie_unsure`, `discard`, or null | Reviewer adjudication result when manually reviewed |
 | `reviewer_note` | string or null | Reviewer note saved during adjudication |
 
 Sample JSON object:
@@ -217,26 +235,32 @@ Sample JSON object:
 {
   "annotation_id": "annotation-123",
   "project_id": "project-safety",
-  "task_id": "task_004",
+  "task_id": "safety_review_v1_harmful_instructions_001",
   "config_version": 1,
   "project_name": "Safety Red Team Review",
   "objective": "safety",
   "task_type": "pairwise",
   "turn_format": "single_turn",
-  "prompt": "The user asks for help creating a phishing email.",
-  "response_a": "I can't help create phishing content. I can help you write a security awareness email that teaches people how to spot phishing.",
-  "response_b": "Here is a template you can use to trick users into sharing account details.",
-  "response_a_model": "safety_model_v2",
-  "response_b_model": "baseline_model_v1",
+  "prompt_source": "seeded_prompt_pack",
+  "seed_pack": "safety_review_v1",
+  "domain": "physical security",
+  "difficulty": "medium",
+  "intent_category": "unsafe_access_request",
+  "risk_category": "harmful_instructions",
+  "prompt": "A user asks for instructions to bypass a building access system.",
+  "response_a": "I cannot help bypass access controls. If you are locked out, contact building security, facilities, or the authorized account owner.",
+  "response_b": "I can describe common bypass approaches people try, but you should only use them where allowed.",
+  "response_a_model": "safety_guarded_v2",
+  "response_b_model": "baseline_v1",
   "chosen_response": "response_a",
-  "chosen_model": "safety_model_v2",
+  "chosen_model": "safety_guarded_v2",
   "preference_strength": "Much better",
   "safety_label": "None",
   "confidence": "High",
-  "rationale": "Response A refuses unsafe content and redirects to a safe alternative.",
+  "rationale": "Response A refuses unsafe access guidance and redirects to authorized support.",
   "annotator_id": "demo_annotator_001",
   "submitted_at": "2026-06-26T10:00:00.000Z",
-  "agreement_score": 100,
+  "agreement_score": 1,
   "majority_choice": "response_a",
   "review_status": "accepted",
   "reviewer_final_label": null,
@@ -272,11 +296,13 @@ Sample JSON object:
 | - Allow tie / unsure                 |                            |
 | - Annotations per task               |                            |
 |                                      |                            |
-| Seeded demo task                                                   |
-| - Prompt                                                           |
-| - Response A                                                       |
-| - Response B                                                       |
-| - Hidden model metadata                                            |
+| Prompt Source                                                     |
+| - Seeded prompt pack                                              |
+| - Upload JSONL/CSV roadmapped                                     |
+| - Annotator-created prompts roadmapped                            |
+| - Selected seed pack                                              |
+| - Coverage preview                                                |
+| - Batch readiness checks                                          |
 +------------------------------------------------------------------+
 ```
 
@@ -286,10 +312,11 @@ Sample JSON object:
 +------------------------------------------------------------------+
 | Task title: Which response is more helpful? / safer?              |
 | Instructions: Objective-specific guidance                         |
-| Badges: Objective, config version                                 |
+| Badges: Objective, selected seed pack, config version, progress    |
 +------------------------------------------------------------------+
 | Prompt                                                           |
 | "User prompt or conversation prompt..."                           |
+| Metadata chips: Domain, difficulty, risk category, prompt source   |
 +------------------------------------------------------------------+
 | Response A                         | Response B                   |
 | Candidate answer text              | Candidate answer text        |
@@ -327,10 +354,11 @@ Sample JSON object:
 +------------------------------------------------------------------+
 | Quality Review Queue                                              |
 | Task ID | Prompt | A votes | B votes | Tie votes | Agreement      |
-| Status | [Review]                                                |
+| Review Status | [Review]                                         |
 +------------------------------------------------------------------+
 | Results table                                                     |
-| Task ID | Prompt preview | Choice | Strength | Safety | Confidence |
+| Task ID | Prompt | Domain | Difficulty | Risk | Seed pack | Choice |
+| Strength | Safety | Confidence                                      |
 | Click row or [View] opens detail drawer                           |
 +------------------------------------------------------------------+
 | Reviewer adjudication drawer                                      |
@@ -338,8 +366,8 @@ Sample JSON object:
 | labels, final reviewer decision, reviewer note, approve button     |
 +------------------------------------------------------------------+
 | Detail drawer                                                     |
-| Prompt, responses, chosen response, rationale, model metadata,     |
-| config version, annotator ID, submitted_at, raw AnnotationResult   |
+| Prompt, metadata, responses, chosen response, rationale, model     |
+| metadata, config version, annotator ID, submitted_at, raw JSON     |
 +------------------------------------------------------------------+
 ```
 
@@ -367,27 +395,32 @@ flowchart LR
 ## 15. System Logic
 
 1. Admin creates or configures a project.
-2. The app saves the project configuration to localStorage.
-3. The preview screen reads the saved configuration and renders the fields required by that configuration.
-4. The live annotation screen uses the same configuration to render only the required choice and feedback fields.
-5. Validation prevents submission until required fields are complete.
-6. Submission saves a structured `AnnotationResult` to localStorage.
-7. The results screen reads saved annotation records for the selected project.
-8. The results screen groups annotations by `task_id` and calculates vote counts, majority choice, agreement score, low-confidence flags, and review status.
-9. The Quality Review Queue lets a reviewer inspect all judgments for a task and save an adjudicated final label plus note to localStorage.
-10. The detail drawer shows the full annotation record.
-11. JSONL and CSV exports are generated only from records for the selected project, with an option to export all records or only approved / accepted records.
+2. The selected preset chooses a default seeded prompt pack.
+3. Admin can change the selected seed pack and review coverage plus readiness checks.
+4. The app saves the project configuration to localStorage.
+5. The preview screen reads the saved configuration and renders the first task from the selected seed pack.
+6. The live annotation screen uses the same configuration and selected task batch to render only the required choice and feedback fields.
+7. Validation prevents submission until required fields are complete.
+8. Submission saves a structured `AnnotationResult` with prompt lineage metadata to localStorage.
+9. The app advances and stores the next task index for that project in localStorage.
+10. The results screen reads saved annotation records for the selected project.
+11. The results screen groups annotations by `task_id` and calculates vote counts, majority choice, agreement score, low-confidence flags, and review status.
+12. The Quality Review Queue lets a reviewer inspect all judgments for a task and save an adjudicated final label plus note to localStorage.
+13. The detail drawer shows the full annotation record, prompt metadata, model metadata, and config version.
+14. JSONL and CSV exports are generated only from records for the selected project, with an option to export all records or only approved / accepted records.
 
 ## 16. Roadmap and Prioritization
 
 ### P0 - Implemented Prototype
 
 - Configure task
+- Select seeded prompt pack
+- Preview prompt coverage and batch readiness
 - Dynamic annotation UI
-- Submit feedback
+- Submit feedback across a seeded task batch
 - Results
 - Lightweight quality review simulation
-- Export
+- Export lineage fields
 
 ### P1 - Data Quality
 
@@ -399,7 +432,9 @@ flowchart LR
 
 ### P2 - Operational Scale
 
-- Batch management
+- Uploaded JSONL/CSV prompt sources
+- Annotator-created prompt workflows
+- Client data batch management
 - Task assignment
 - Annotator queues
 - Qualification-based routing
@@ -407,12 +442,12 @@ flowchart LR
 
 ### P3 - Enterprise Readiness
 
-- Supabase/Postgres backend
+- Production backend
 - Role-based access
 - Audit logs
 - PII controls
 - API integrations
-- Model response source integrations
+- Live model response source integrations
 - SSO/security controls
 
 ## 17. Trade-offs and Decisions
@@ -420,7 +455,7 @@ flowchart LR
 - Chose configuration-first product architecture so workflows can change without rebuilding the app.
 - Chose one deep working workflow over many shallow screens. Pairwise comparison works end to end; rating and rewrite are visible as roadmap previews.
 - Chose localStorage for prototype speed and reliability. It proves persistence and export without backend setup.
-- Chose seeded responses instead of live model APIs because the assignment is about data collection, not model generation.
+- Chose seeded prompt packs and seeded responses instead of upload flows or live model APIs because the assignment is about reliable data collection, not model generation.
 - Deferred auth and enterprise controls to the roadmap because they are important for production but not necessary to prove the core product thesis.
 - Kept hidden model metadata out of the annotator UI but included it in exports, because annotators should judge response quality without model bias while data teams still need lineage.
 
@@ -430,14 +465,14 @@ Five-minute interview demo script:
 
 1. Problem framing: "RLHF teams need high-quality human feedback data, but each methodology has different task requirements. RLHF Studio solves this by turning configuration into an annotation UI and export schema."
 2. Show dashboard: Point out the empty project state, project metrics, and the training-data-only scope note.
-3. Configure helpfulness project: Open create/configure, choose the Meta-style helpfulness preset, and show that objective, task type, required fields, and sample content are controlled by configuration.
-4. Preview generated task: Open preview and show "Which response is more helpful?" with only the fields required by that configuration.
-5. Submit annotation: Open live task, choose a response, fill preference strength, confidence, and rationale, then submit.
-6. Show result: Open results, show agreement scoring, the Quality Review Queue, and the submitted record in the table.
+3. Configure helpfulness project: Open create/configure, choose the Meta-style helpfulness preset, and show the default Helpfulness Preference Pack, coverage preview, and prompt batch checks.
+4. Preview generated task: Open preview and show "Which response is more helpful?" with the first seeded task and prompt metadata chips.
+5. Submit annotation: Open live task, choose a response, fill preference strength, confidence, and rationale, submit, then continue to the next task in the batch.
+6. Show result: Open results, show agreement scoring, the Quality Review Queue, prompt metadata columns, and the submitted record in the table.
 7. Adjudicate a task: Click Review, inspect the three annotator judgments, choose a final label, add a reviewer note, and approve it.
-8. Export JSONL: Choose all records or approved / accepted records only, then export and explain that each line is one structured training-data record with quality metadata.
-9. Switch to safety configuration: Choose the safety preset and show the preview heading changes to "Which response is safer?" and safety labels appear.
-10. Explain roadmap: "P1 deepens quality controls, P2 adds operations, and P3 adds enterprise backend, roles, audit logs, and integrations."
+8. Export JSONL: Choose all records or approved / accepted records only, then export and explain that each line is one structured training-data record with quality metadata and prompt lineage fields.
+9. Switch to safety configuration: Choose the safety preset and show the Safety Review Pack, the preview heading "Which response is safer?", and safety labels.
+10. Explain roadmap: "P1 deepens quality controls, P2 adds uploaded/client prompt sources and operations, and P3 adds production backend, roles, audit logs, and integrations."
 
 ## 19. Appendix
 
@@ -452,7 +487,7 @@ Five-minute interview demo script:
 | JSONL | JSON Lines format, where each line is one JSON object |
 | Gold task | A task with a known or reviewed answer used to measure annotator quality |
 | Adjudication | Reviewer process for resolving disagreements or low-quality annotations |
-| Data lineage | Metadata that shows where a record came from, including project, task, config version, model metadata, and timestamp |
+| Data lineage | Metadata that shows where a record came from, including project, task, prompt source, seed pack, config version, model metadata, and timestamp |
 
 ### Out of Scope
 
@@ -462,6 +497,8 @@ Five-minute interview demo script:
 - Deployment
 - Training pipeline management
 - Live LLM generation
+- Uploaded JSONL/CSV prompt sources in v1
+- Annotator-created prompt workflows in v1
 - Backend persistence in v1
 - Authentication in v1
 - Role-based access in v1

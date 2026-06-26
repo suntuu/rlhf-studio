@@ -1,7 +1,7 @@
 import { CheckCircle2, Download, Eye, FileDown, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { objectiveLabels } from '../data/demoData'
+import { getProjectSeedPack, objectiveLabels } from '../data/demoData'
 import { exportCsv, exportJsonl } from '../lib/exporters'
 import {
   buildQualityExportRecords,
@@ -96,6 +96,7 @@ function ResultsIndex() {
 }
 
 function ProjectResults({ project }: { project: ProjectConfig }) {
+  const seedPack = getProjectSeedPack(project)
   const [records, setRecords] = useState(() => getAnnotationsByProject(project.id))
   const [reviewDecisions, setReviewDecisions] = useState(() => getReviewDecisions(project.id))
   const [selectedRecord, setSelectedRecord] = useState<AnnotationResult | null>(null)
@@ -111,11 +112,7 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
   const selectedExportRecords = useMemo(
     () =>
       exportScope === 'ready'
-        ? exportRecords.filter(
-            (record) =>
-              record.review_status === 'accepted' ||
-              (record.review_status === 'approved' && record.reviewer_final_label !== 'discard'),
-          )
+        ? exportRecords.filter((record) => record.review_status === 'accepted' || record.review_status === 'approved')
         : exportRecords,
     [exportRecords, exportScope],
   )
@@ -181,7 +178,7 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
           <MetricCard
             label="Records ready for export"
             value={qualityMetrics.readyForExport}
-            help="Accepted"
+            help="Ready"
             tone="green"
           />
           <MetricCard
@@ -211,6 +208,7 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
                 {objectiveLabels[project.objective]}
               </Badge>
               <Badge tone="slate">Config v{project.configVersion}</Badge>
+              <Badge tone="green">{seedPack.name}</Badge>
               <Badge tone="green">{records.length} annotations collected</Badge>
             </div>
           </div>
@@ -248,6 +246,10 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
                   <tr>
                     <th className="px-5 py-3">Task ID</th>
                     <th className="px-5 py-3">Prompt preview</th>
+                    <th className="px-5 py-3">Domain</th>
+                    <th className="px-5 py-3">Difficulty</th>
+                    <th className="px-5 py-3">Risk category</th>
+                    <th className="px-5 py-3">Seed pack</th>
                     <th className="px-5 py-3">Choice</th>
                     <th className="px-5 py-3">Strength</th>
                     <th className="px-5 py-3">Safety label</th>
@@ -265,6 +267,10 @@ function ProjectResults({ project }: { project: ProjectConfig }) {
                     >
                       <td className="px-5 py-4 font-mono text-xs text-neutral-600">{record.task_id}</td>
                       <td className="max-w-sm px-5 py-4 text-neutral-800">{record.prompt}</td>
+                      <td className="px-5 py-4 text-neutral-700">{record.domain}</td>
+                      <td className="px-5 py-4 text-neutral-700">{formatValue(record.difficulty)}</td>
+                      <td className="px-5 py-4 text-neutral-700">{formatValue(record.risk_category)}</td>
+                      <td className="px-5 py-4 font-mono text-xs text-neutral-600">{record.seed_pack}</td>
                       <td className="px-5 py-4">
                         <Badge tone={record.chosen_response === 'tie_unsure' ? 'slate' : 'blue'}>
                           {formatChoice(record.chosen_response)}
@@ -345,7 +351,7 @@ function QualityReviewQueue({
                 <th className="px-5 py-3">Response B votes</th>
                 <th className="px-5 py-3">Tie/Unsure votes</th>
                 <th className="px-5 py-3">Agreement</th>
-                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Review Status</th>
                 <th className="px-5 py-3 text-right">Action</th>
               </tr>
             </thead>
@@ -357,7 +363,9 @@ function QualityReviewQueue({
                   <td className="px-5 py-4 text-neutral-700">{summary.responseAVotes}</td>
                   <td className="px-5 py-4 text-neutral-700">{summary.responseBVotes}</td>
                   <td className="px-5 py-4 text-neutral-700">{summary.tieUnsureVotes}</td>
-                  <td className="px-5 py-4 font-semibold text-neutral-800">{summary.agreementScore}%</td>
+                  <td className="px-5 py-4 font-semibold text-neutral-800">
+                    {formatAgreementScore(summary.agreementScore)}
+                  </td>
                   <td className="px-5 py-4">
                     <Badge tone={getStatusTone(summary.status)}>{formatReviewStatus(summary.status)}</Badge>
                   </td>
@@ -426,14 +434,27 @@ function QualityReviewDrawer({
         <div className="space-y-5 p-5">
           <div className="flex flex-wrap gap-2">
             <Badge tone={getStatusTone(summary.status)}>{formatReviewStatus(summary.status)}</Badge>
-            <Badge tone="blue">{summary.agreementScore}% agreement</Badge>
+            <Badge tone="blue">{formatAgreementScore(summary.agreementScore)} agreement</Badge>
             <Badge tone={summary.hasLowConfidence ? 'amber' : 'green'}>
               {summary.hasLowConfidence ? 'Low confidence flagged' : 'No low-confidence issue'}
             </Badge>
             <Badge tone="slate">Majority: {formatChoice(summary.majorityChoice)}</Badge>
+            <Badge tone="slate">Domain: {summary.domain}</Badge>
+            <Badge tone={summary.risk_category === 'none' ? 'green' : 'amber'}>
+              Risk: {formatValue(summary.risk_category)}
+            </Badge>
           </div>
 
           <DetailBlock label="Prompt" value={summary.prompt} />
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <DetailBlock label="Prompt source" value={formatValue(summary.prompt_source)} />
+            <DetailBlock label="Seed pack" value={summary.seed_pack} />
+            <DetailBlock label="Difficulty" value={formatValue(summary.difficulty)} />
+            <DetailBlock label="Intent category" value={formatValue(summary.intent_category)} />
+            <DetailBlock label="Risk category" value={formatValue(summary.risk_category)} />
+            <DetailBlock label="Config version" value={`v${summary.annotations[0]?.config_version ?? 1}`} />
+          </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <DetailBlock label="Response A" value={summary.response_a} />
@@ -500,7 +521,7 @@ function QualityReviewDrawer({
 
             {summary.reviewDecision ? (
               <p className="mt-3 text-sm leading-6 text-neutral-600">
-                Current approved label: {formatFinalLabel(summary.reviewDecision.final_label)}. Last approved{' '}
+                Current final label: {formatFinalLabel(summary.reviewDecision.final_label)}. Last approved{' '}
                 {formatDate(summary.reviewDecision.approved_at)}.
               </p>
             ) : null}
@@ -556,6 +577,12 @@ function DetailDrawer({ record, onClose }: { record: AnnotationResult; onClose: 
             <DetailBlock label="Response B" value={record.response_b} />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
+            <DetailBlock label="Prompt source" value={formatValue(record.prompt_source)} />
+            <DetailBlock label="Seed pack" value={record.seed_pack} />
+            <DetailBlock label="Domain" value={record.domain} />
+            <DetailBlock label="Difficulty" value={formatValue(record.difficulty)} />
+            <DetailBlock label="Intent category" value={formatValue(record.intent_category)} />
+            <DetailBlock label="Risk category" value={formatValue(record.risk_category)} />
             <DetailBlock label="Chosen response" value={formatChoice(record.chosen_response)} />
             <DetailBlock label="Chosen model" value={record.chosen_model ?? 'Tie / unsure'} />
             <DetailBlock label="Preference strength" value={record.preference_strength ?? 'Not captured'} />
@@ -617,13 +644,17 @@ function formatChoice(choice: AnnotationResult['chosen_response']) {
 
 function formatFinalLabel(label: ReviewFinalLabel) {
   if (label === 'discard') {
-    return 'Discard'
+    return 'Discarded'
   }
 
   return formatChoice(label)
 }
 
 function formatReviewStatus(status: ReviewStatus) {
+  if (status === 'discarded') {
+    return 'Discarded'
+  }
+
   if (status === 'approved') {
     return 'Approved'
   }
@@ -636,6 +667,10 @@ function formatReviewStatus(status: ReviewStatus) {
 }
 
 function getStatusTone(status: ReviewStatus): 'slate' | 'blue' | 'green' | 'amber' | 'red' {
+  if (status === 'discarded') {
+    return 'red'
+  }
+
   if (status === 'approved') {
     return 'green'
   }
@@ -645,6 +680,14 @@ function getStatusTone(status: ReviewStatus): 'slate' | 'blue' | 'green' | 'ambe
   }
 
   return 'amber'
+}
+
+function formatAgreementScore(score: number) {
+  return `${Math.round(score * 100)}%`
+}
+
+function formatValue(value: string) {
+  return value.replaceAll('_', ' ')
 }
 
 function formatDate(value: string) {

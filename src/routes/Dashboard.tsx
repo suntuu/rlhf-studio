@@ -28,21 +28,22 @@ export function Dashboard() {
 
   const publishedProjects = projects.filter((project) => project.status === 'published').length
   const draftProjects = projects.length - publishedProjects
-  const responseA = annotations.filter((item) => item.chosen_response === 'response_a').length
-  const responseB = annotations.filter((item) => item.chosen_response === 'response_b').length
-  const tieUnsure = annotations.filter((item) => item.chosen_response === 'tie_unsure').length
+  const projectsWithAnnotations = new Set(annotations.map((annotation) => annotation.project_id)).size
+  const helpfulnessAnnotations = annotations.filter((item) => item.objective === 'helpfulness').length
+  const safetyAnnotations = annotations.filter((item) => item.objective === 'safety').length
+  const accuracyAnnotations = annotations.filter((item) => item.objective === 'accuracy').length
+  const customAnnotations = annotations.filter((item) => item.objective === 'custom').length
   const taskSummaries = getTaskQualitySummaries(annotations, reviewDecisions)
   const qualityMetrics = getQualityMetrics(annotations, taskSummaries)
   const exportRecords = buildQualityExportRecords(annotations, taskSummaries)
   const readyExportRecords = exportRecords.filter(
-    (record) =>
-      record.review_status === 'accepted' ||
-      (record.review_status === 'approved' && record.reviewer_final_label !== 'discard'),
+    (record) => record.review_status === 'accepted' || record.review_status === 'approved',
   ).length
-  const reviewQueueRecords = exportRecords.length - readyExportRecords
+  const notReadyExportRecords = exportRecords.length - readyExportRecords
   const acceptedTasks = taskSummaries.filter((summary) => summary.status === 'accepted').length
   const approvedTasks = taskSummaries.filter((summary) => summary.status === 'approved').length
   const needsReviewTasks = taskSummaries.filter((summary) => summary.status === 'needs_review').length
+  const discardedTasks = taskSummaries.filter((summary) => summary.status === 'discarded').length
 
   return (
     <>
@@ -54,7 +55,7 @@ export function Dashboard() {
       <div className="space-y-6 p-5 lg:p-8">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="Active projects"
+            label="Projects"
             value={projects.length}
             help={projects.length === 0 ? 'None yet' : `${publishedProjects} published`}
             tone="blue"
@@ -71,35 +72,42 @@ export function Dashboard() {
             }
           />
           <MetricCard
-            label="Completed annotations"
+            label="Submitted annotations"
             value={annotations.length}
-            help={annotations.length === 0 ? 'No votes' : `${responseA + responseB} decisive`}
+            help={annotations.length === 0 ? 'No records' : formatCount(projectsWithAnnotations, 'project')}
             tone="green"
             visualization={
               <MetricBreakdown
-                ariaLabel="Annotation choice distribution"
-                emptyLabel="Submitted annotations will show response preference distribution."
+                ariaLabel="Annotation objective breakdown"
+                emptyLabel="Submitted annotations will show objective coverage."
                 segments={[
-                  { label: 'Response A', value: responseA, tone: 'blue' },
-                  { label: 'Response B', value: responseB, tone: 'green' },
-                  { label: 'Tie', value: tieUnsure, tone: 'amber' },
+                  { label: objectiveLabels.helpfulness, value: helpfulnessAnnotations, tone: 'blue' },
+                  { label: objectiveLabels.safety, value: safetyAnnotations, tone: 'amber' },
+                  { label: objectiveLabels.accuracy, value: accuracyAnnotations, tone: 'green' },
+                  { label: objectiveLabels.custom, value: customAnnotations, tone: 'slate' },
                 ]}
                 total={annotations.length}
               />
             }
           />
           <MetricCard
-            label="Avg agreement"
-            value={qualityMetrics.agreementRate}
-            help={taskSummaries.length === 0 ? 'No tasks' : formatCount(taskSummaries.length, 'task')}
+            label="Review queue"
+            value={needsReviewTasks}
+            help={
+              annotations.length === 0
+                ? 'No flags'
+                : `${qualityMetrics.lowConfidenceRecords} low confidence`
+            }
+            tone="amber"
             visualization={
               <MetricBreakdown
                 ariaLabel="Task review status breakdown"
-                emptyLabel="Agreement appears after at least one submitted task."
+                emptyLabel="Submitted tasks will show review status."
                 segments={[
                   { label: 'Accepted', value: acceptedTasks, tone: 'green' },
                   { label: 'Approved', value: approvedTasks, tone: 'blue' },
                   { label: 'Review', value: needsReviewTasks, tone: 'amber' },
+                  { label: 'Discarded', value: discardedTasks, tone: 'red' },
                 ]}
                 total={taskSummaries.length}
               />
@@ -108,11 +116,7 @@ export function Dashboard() {
           <MetricCard
             label="Export-ready records"
             value={readyExportRecords}
-            help={
-              exportRecords.length === 0
-                ? 'No records'
-                : formatCount(qualityMetrics.readyForExport, 'ready task')
-            }
+            help={exportRecords.length === 0 ? 'No records' : `${notReadyExportRecords} not ready`}
             tone="amber"
             visualization={
               <MetricBreakdown
@@ -120,7 +124,7 @@ export function Dashboard() {
                 emptyLabel="Records become export-ready after accepted or approved task quality checks."
                 segments={[
                   { label: 'Ready', value: readyExportRecords, tone: 'green' },
-                  { label: 'Review', value: reviewQueueRecords, tone: 'amber' },
+                  { label: 'Not ready', value: notReadyExportRecords, tone: 'amber' },
                 ]}
                 total={exportRecords.length}
               />

@@ -1,6 +1,6 @@
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { useParams } from 'react-router-dom'
-import { objectiveLabels } from '../data/demoData'
+import { getProjectSeedPack, getProjectTasks, objectiveLabels } from '../data/demoData'
 import { objectiveQuestion, taskInstructions } from '../lib/copy'
 import { getProjectById } from '../lib/storage'
 import { Badge, EmptyState, LinkButton, PageHeader, Panel } from '../components/UI'
@@ -21,6 +21,10 @@ export function PreviewAnnotator() {
       </div>
     )
   }
+
+  const seedPack = getProjectSeedPack(project)
+  const tasks = getProjectTasks(project)
+  const task = tasks[0]
 
   return (
     <>
@@ -48,6 +52,8 @@ export function PreviewAnnotator() {
               <Badge tone={project.objective === 'safety' ? 'amber' : 'blue'}>
                 {objectiveLabels[project.objective]}
               </Badge>
+              <Badge tone="green">{seedPack.name}</Badge>
+              <Badge tone="slate">{tasks.length} tasks</Badge>
               <Badge tone="slate">Config v{project.configVersion}</Badge>
             </div>
             <h2 className="mt-4 text-2xl font-semibold text-neutral-950">
@@ -62,13 +68,21 @@ export function PreviewAnnotator() {
                 {project.turnFormat === 'multi_turn' ? 'Conversation prompt' : 'User prompt'}
               </p>
               <p className="mt-2 rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4 text-sm leading-6 text-neutral-800">
-                {project.samplePrompt}
+                {task.prompt}
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge tone="slate">Domain: {task.domain}</Badge>
+                <Badge tone="slate">Difficulty: {formatValue(task.difficulty)}</Badge>
+                <Badge tone={task.risk_category === 'none' ? 'green' : 'amber'}>
+                  Risk: {formatValue(task.risk_category)}
+                </Badge>
+                <Badge tone="blue">Source: {formatValue(task.prompt_source)}</Badge>
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <ResponsePreview title="Response A" body={project.responseA} />
-              <ResponsePreview title="Response B" body={project.responseB} />
+              <ResponsePreview title="Response A" body={task.response_a} />
+              <ResponsePreview title="Response B" body={task.response_b} />
             </div>
 
             <div className="rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4">
@@ -135,9 +149,15 @@ export function PreviewAnnotator() {
           <h2 className="text-base font-semibold text-neutral-950">Output schema preview</h2>
           <p className="mt-2 text-sm leading-6 text-neutral-600">
             Saved records include prompt, responses, choice, optional labels, rationale, annotator ID, timestamp,
-            and hidden model metadata.
+            prompt metadata, seed pack lineage, and hidden model metadata.
           </p>
           <div className="mt-4 space-y-2 text-sm">
+            <SchemaChip label="prompt_source" />
+            <SchemaChip label="seed_pack" />
+            <SchemaChip label="domain" />
+            <SchemaChip label="difficulty" />
+            <SchemaChip label="intent_category" />
+            <SchemaChip label="risk_category" />
             <SchemaChip label="chosen_response" />
             <SchemaChip label="chosen_model" />
             <SchemaChip label="config_version" />
@@ -174,4 +194,8 @@ function SchemaChip({ label }: { label: string }) {
       {label}
     </div>
   )
+}
+
+function formatValue(value: string) {
+  return value.replaceAll('_', ' ')
 }

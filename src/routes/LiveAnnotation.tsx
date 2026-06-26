@@ -1,9 +1,9 @@
 import { ArrowRight, CheckCircle2, Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getProjectTasks } from '../data/demoData'
+import { getProjectSeedPack, getProjectTasks } from '../data/demoData'
 import { objectiveQuestion, taskInstructions } from '../lib/copy'
-import { getProjectById, saveAnnotation } from '../lib/storage'
+import { getProjectById, getTaskProgress, saveAnnotation, saveTaskProgress } from '../lib/storage'
 import type { AnnotationResult, ChosenResponse } from '../types'
 import { Badge, Button, EmptyState, LinkButton, PageHeader, Panel } from '../components/UI'
 import { inputClass, textareaClass } from '../lib/styles'
@@ -23,7 +23,9 @@ export function LiveAnnotation() {
   const { projectId } = useParams()
   const project = projectId ? getProjectById(projectId) : undefined
   const tasks = useMemo(() => (project ? getProjectTasks(project) : []), [project])
-  const [taskIndex, setTaskIndex] = useState(0)
+  const [taskIndex, setTaskIndex] = useState(() =>
+    project ? clampTaskIndex(getTaskProgress(project.id), tasks.length) : 0,
+  )
   const [chosenResponse, setChosenResponse] = useState<ChosenResponse | ''>('')
   const [preferenceStrength, setPreferenceStrength] = useState('')
   const [safetyLabel, setSafetyLabel] = useState('')
@@ -44,6 +46,7 @@ export function LiveAnnotation() {
   }
 
   const currentProject = project
+  const seedPack = getProjectSeedPack(currentProject)
   const task = tasks[taskIndex] ?? tasks[0]
   const isValid =
     chosenResponse &&
@@ -69,25 +72,31 @@ export function LiveAnnotation() {
 
     const chosenModel =
       chosenResponse === 'response_a'
-        ? task.responseAModel
+        ? task.response_a_model
         : chosenResponse === 'response_b'
-          ? task.responseBModel
+          ? task.response_b_model
           : null
 
     const annotation: AnnotationResult = {
       annotation_id: `annotation-${crypto.randomUUID()}`,
       project_id: currentProject.id,
-      task_id: task.id,
+      task_id: task.task_id,
       config_version: currentProject.configVersion,
       project_name: currentProject.name,
       objective: currentProject.objective,
       task_type: currentProject.taskType,
       turn_format: currentProject.turnFormat,
+      prompt_source: task.prompt_source,
+      seed_pack: task.seed_pack,
+      domain: task.domain,
+      difficulty: task.difficulty,
+      intent_category: task.intent_category,
+      risk_category: task.risk_category,
       prompt: task.prompt,
-      response_a: task.responseA,
-      response_b: task.responseB,
-      response_a_model: task.responseAModel,
-      response_b_model: task.responseBModel,
+      response_a: task.response_a,
+      response_b: task.response_b,
+      response_a_model: task.response_a_model,
+      response_b_model: task.response_b_model,
       chosen_response: chosenResponse,
       chosen_model: chosenModel,
       preference_strength: currentProject.requiredFields.preferenceStrength ? preferenceStrength : null,
@@ -99,6 +108,9 @@ export function LiveAnnotation() {
     }
 
     saveAnnotation(annotation)
+    const nextTaskIndex = getNextTaskIndex(taskIndex, tasks.length)
+    saveTaskProgress(currentProject.id, nextTaskIndex)
+    setTaskIndex(nextTaskIndex)
     setSubmittedId(annotation.annotation_id)
   }
 
@@ -116,9 +128,12 @@ export function LiveAnnotation() {
             <p className="mt-2 text-sm leading-6 text-neutral-600">
               Record ID <span className="font-mono text-neutral-800">{submittedId}</span> is stored in localStorage.
             </p>
+            <p className="mt-2 text-sm font-semibold text-neutral-700">
+              Next up: Task {taskIndex + 1} of {tasks.length}
+            </p>
             <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
-              <Button onClick={() => resetForm((taskIndex + 1) % tasks.length)}>
-                Annotate another seeded task
+              <Button onClick={() => resetForm()}>
+                Continue to next task
                 <ArrowRight size={16} aria-hidden="true" />
               </Button>
               <LinkButton to={`/projects/${project.id}/results`} variant="primary">
@@ -146,6 +161,7 @@ export function LiveAnnotation() {
               <Badge tone={project.objective === 'safety' ? 'amber' : 'blue'}>
                 {project.objective}
               </Badge>
+              <Badge tone="green">{seedPack.name}</Badge>
               <Badge tone="slate">Config v{project.configVersion}</Badge>
             </div>
             <h1 className="mt-4 text-2xl font-semibold text-neutral-950">
@@ -156,12 +172,20 @@ export function LiveAnnotation() {
                 {project.turnFormat === 'multi_turn' ? 'Conversation prompt' : 'User prompt'}
               </p>
               <p className="mt-2 text-sm leading-6 text-neutral-800">{task.prompt}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge tone="slate">Domain: {task.domain}</Badge>
+                <Badge tone="slate">Difficulty: {formatValue(task.difficulty)}</Badge>
+                <Badge tone={task.risk_category === 'none' ? 'green' : 'amber'}>
+                  Risk: {formatValue(task.risk_category)}
+                </Badge>
+                <Badge tone="blue">Source: {formatValue(task.prompt_source)}</Badge>
+              </div>
             </div>
           </Panel>
 
           <div className="grid gap-4 xl:grid-cols-2">
-            <AnswerCard body={task.responseA} selected={chosenResponse === 'response_a'} title="Response A" />
-            <AnswerCard body={task.responseB} selected={chosenResponse === 'response_b'} title="Response B" />
+            <AnswerCard body={task.response_a} selected={chosenResponse === 'response_a'} title="Response A" />
+            <AnswerCard body={task.response_b} selected={chosenResponse === 'response_b'} title="Response B" />
           </div>
 
           <Panel className="p-5">
@@ -298,4 +322,24 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <div className="mt-2">{children}</div>
     </label>
   )
+}
+
+function clampTaskIndex(index: number, taskCount: number) {
+  if (taskCount <= 0) {
+    return 0
+  }
+
+  return Math.min(Math.max(index, 0), taskCount - 1)
+}
+
+function getNextTaskIndex(currentIndex: number, taskCount: number) {
+  if (taskCount <= 0) {
+    return 0
+  }
+
+  return (currentIndex + 1) % taskCount
+}
+
+function formatValue(value: string) {
+  return value.replaceAll('_', ' ')
 }
