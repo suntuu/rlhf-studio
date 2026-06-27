@@ -10,6 +10,8 @@ import type {
 export interface TaskQualitySummary {
   project_id: string
   task_id: string
+  prompt_source_type: string
+  response_source_type: string
   prompt_source: string
   seed_pack: string
   domain: string
@@ -19,6 +21,11 @@ export interface TaskQualitySummary {
   prompt: string
   response_a: string
   response_b: string
+  response_a_provider: string
+  response_a_model: string
+  response_b_provider: string
+  response_b_model: string
+  generation_mode: string
   annotations: AnnotationResult[]
   responseAVotes: number
   responseBVotes: number
@@ -130,6 +137,8 @@ function createTaskSummary(
   return {
     project_id: first.project_id,
     task_id: first.task_id,
+    prompt_source_type: first.prompt_source_type,
+    response_source_type: first.response_source_type,
     prompt_source: first.prompt_source,
     seed_pack: first.seed_pack,
     domain: first.domain,
@@ -139,6 +148,11 @@ function createTaskSummary(
     prompt: first.prompt,
     response_a: first.response_a,
     response_b: first.response_b,
+    response_a_provider: first.response_a_provider,
+    response_a_model: first.response_a_model,
+    response_b_provider: first.response_b_provider,
+    response_b_model: first.response_b_model,
+    generation_mode: first.generation_mode,
     annotations,
     responseAVotes,
     responseBVotes,

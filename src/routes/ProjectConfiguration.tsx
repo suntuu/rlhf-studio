@@ -13,7 +13,17 @@ import {
   objectiveLabels,
 } from '../data/demoData'
 import { getProjectById, saveProject } from '../lib/storage'
-import type { MethodologyPreset, Objective, ProjectConfig, PromptSourceOption, TaskType, TurnFormat } from '../types'
+import type {
+  GenerationMode,
+  MethodologyPreset,
+  ModelProvider,
+  Objective,
+  ProjectConfig,
+  PromptSourceType,
+  ResponseSourceType,
+  TaskType,
+  TurnFormat,
+} from '../types'
 import { Badge, Button, FormLabel, LinkButton, PageHeader, Panel } from '../components/UI'
 import { inputClass, textareaClass } from '../lib/styles'
 
@@ -29,15 +39,41 @@ const turnFormatLabels: Record<TurnFormat, string> = {
 }
 
 const promptSourceOptions: {
-  value: PromptSourceOption
+  value: PromptSourceType
   label: string
   status: string
   disabled?: boolean
 }[] = [
   { value: 'seeded_prompt_pack', label: 'Seeded prompt pack', status: 'Supported in v1' },
-  { value: 'upload_jsonl_csv', label: 'Upload JSONL/CSV', status: 'Roadmap', disabled: true },
+  { value: 'upload_csv_jsonl', label: 'Upload CSV/JSONL', status: 'Roadmap', disabled: true },
+  { value: 'client_system_api', label: 'Client system API', status: 'Roadmap', disabled: true },
   { value: 'annotator_created', label: 'Annotator-created prompts', status: 'Roadmap', disabled: true },
+  { value: 'synthetic_generation', label: 'Synthetic prompt generation', status: 'Roadmap', disabled: true },
 ]
+
+const responseSourceOptions: {
+  value: ResponseSourceType
+  label: string
+  status: string
+  disabled?: boolean
+}[] = [
+  { value: 'seeded_pairs', label: 'Seeded response pairs', status: 'Supported in v1' },
+  { value: 'uploaded_pairs', label: 'Uploaded response pairs', status: 'Roadmap', disabled: true },
+  { value: 'model_api_simulated', label: 'Model API comparison', status: 'Simulated in v1' },
+]
+
+const modelProviders: ModelProvider[] = ['OpenAI', 'Anthropic', 'Meta', 'Custom']
+
+const generationModeLabels: Record<GenerationMode, string> = {
+  batch_before_annotation: 'Batch before annotation',
+  live_during_annotation: 'Live during annotation',
+}
+
+const responseSourceLabels: Record<ResponseSourceType, string> = {
+  seeded_pairs: 'Seeded response pairs',
+  uploaded_pairs: 'Uploaded response pairs',
+  model_api_simulated: 'Model API comparison',
+}
 
 export function ProjectConfiguration() {
   const { id } = useParams()
@@ -69,6 +105,48 @@ export function ProjectConfiguration() {
 
   function handleSeedPackChange(event: ChangeEvent<HTMLSelectElement>) {
     setProject((current) => applySeedPack(current, event.target.value))
+  }
+
+  function updatePromptSourceType(type: PromptSourceType) {
+    if (type !== 'seeded_prompt_pack') {
+      return
+    }
+
+    setProject((current) => ({
+      ...current,
+      promptSource: {
+        ...current.promptSource,
+        type,
+        roadmapSourceType: undefined,
+      },
+    }))
+  }
+
+  function updateResponseSourceType(type: ResponseSourceType) {
+    if (type === 'uploaded_pairs') {
+      return
+    }
+
+    setProject((current) => ({
+      ...current,
+      responseSource: {
+        ...current.responseSource,
+        type,
+      },
+    }))
+  }
+
+  function updateResponseSource<K extends keyof ProjectConfig['responseSource']>(
+    key: K,
+    value: ProjectConfig['responseSource'][K],
+  ) {
+    setProject((current) => ({
+      ...current,
+      responseSource: {
+        ...current.responseSource,
+        [key]: value,
+      },
+    }))
   }
 
   function persist(status: ProjectConfig['status']) {
@@ -277,21 +355,25 @@ export function ProjectConfiguration() {
           <Panel className="p-5">
             <h2 className="text-lg font-semibold text-neutral-950">Prompt Source</h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-600">
-              Prompts can come from uploaded client data, real user queries, annotator-created prompts, or seeded
-              demo packs. V1 uses seeded packs to keep the prototype reliable.
+              Prompt source defines where user prompts/tasks come from before annotation.
+            </p>
+            <p className="mt-3 rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-3 text-sm leading-6 text-neutral-700">
+              Real RLHF projects separate prompt sourcing from response generation. Prompts may come from uploads,
+              client APIs, user logs, or annotators. Responses may come from uploaded pairs or model APIs. V1
+              simulates this with seeded prompt-response batches.
             </p>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               {promptSourceOptions.map((option) => (
                 <button
                   className={`rounded-lg border p-3 text-left transition duration-200 ${
-                    project.promptSource === option.value
+                    project.promptSource.type === option.value
                       ? 'border-[#202936] bg-[#f3f1eb] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
                       : 'border-[#e2ded6] bg-[#fffdf9] hover:bg-[#f3f1eb]'
                   } ${option.disabled ? 'cursor-not-allowed opacity-60' : ''}`}
                   disabled={option.disabled}
                   key={option.value}
-                  onClick={() => update('promptSource', option.value)}
+                  onClick={() => updatePromptSourceType(option.value)}
                   type="button"
                 >
                   <span className="block text-sm font-semibold text-neutral-900">{option.label}</span>
@@ -350,6 +432,127 @@ export function ProjectConfiguration() {
               </div>
             </div>
           </Panel>
+
+          <Panel className="p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-neutral-950">Response Source</h2>
+                <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-600">
+                  Response source defines where Response A and Response B come from for pairwise evaluation.
+                </p>
+              </div>
+              {project.responseSource.type === 'model_api_simulated' ? (
+                <Badge tone="amber">Simulated in v1</Badge>
+              ) : null}
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {responseSourceOptions.map((option) => (
+                <button
+                  className={`rounded-lg border p-3 text-left transition duration-200 ${
+                    project.responseSource.type === option.value
+                      ? 'border-[#202936] bg-[#f3f1eb] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]'
+                      : 'border-[#e2ded6] bg-[#fffdf9] hover:bg-[#f3f1eb]'
+                  } ${option.disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+                  disabled={option.disabled}
+                  key={option.value}
+                  onClick={() => updateResponseSourceType(option.value)}
+                  type="button"
+                >
+                  <span className="block text-sm font-semibold text-neutral-900">{option.label}</span>
+                  <span className="mt-1 block text-xs text-neutral-500">{option.status}</span>
+                </button>
+              ))}
+            </div>
+
+            {project.responseSource.type === 'model_api_simulated' ? (
+              <div className="mt-5 rounded-lg border border-[#e2ded6] bg-[#fffdf9] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-neutral-950">Model API comparison setup</h3>
+                  <Badge tone="amber">Simulated in v1</Badge>
+                </div>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <FormLabel label="Model A provider">
+                    <select
+                      className={inputClass}
+                      onChange={(event) => updateResponseSource('modelAProvider', event.target.value as ModelProvider)}
+                      value={project.responseSource.modelAProvider}
+                    >
+                      {modelProviders.map((provider) => (
+                        <option key={provider}>{provider}</option>
+                      ))}
+                    </select>
+                  </FormLabel>
+                  <FormLabel label="Model A version">
+                    <input
+                      className={inputClass}
+                      onChange={(event) => updateResponseSource('modelAVersion', event.target.value)}
+                      value={project.responseSource.modelAVersion}
+                    />
+                  </FormLabel>
+                  <FormLabel label="Model B provider">
+                    <select
+                      className={inputClass}
+                      onChange={(event) => updateResponseSource('modelBProvider', event.target.value as ModelProvider)}
+                      value={project.responseSource.modelBProvider}
+                    >
+                      {modelProviders.map((provider) => (
+                        <option key={provider}>{provider}</option>
+                      ))}
+                    </select>
+                  </FormLabel>
+                  <FormLabel label="Model B version">
+                    <input
+                      className={inputClass}
+                      onChange={(event) => updateResponseSource('modelBVersion', event.target.value)}
+                      value={project.responseSource.modelBVersion}
+                    />
+                  </FormLabel>
+                  <FormLabel label="Generation mode">
+                    <select
+                      className={inputClass}
+                      onChange={(event) => updateResponseSource('generationMode', event.target.value as GenerationMode)}
+                      value={project.responseSource.generationMode}
+                    >
+                      {Object.entries(generationModeLabels).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </FormLabel>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormLabel label="Temperature">
+                      <input
+                        className={inputClass}
+                        max={2}
+                        min={0}
+                        onChange={(event) => updateResponseSource('temperature', Number(event.target.value))}
+                        step={0.1}
+                        type="number"
+                        value={project.responseSource.temperature}
+                      />
+                    </FormLabel>
+                    <FormLabel label="Max tokens">
+                      <input
+                        className={inputClass}
+                        min={1}
+                        onChange={(event) => updateResponseSource('maxTokens', Number(event.target.value))}
+                        type="number"
+                        value={project.responseSource.maxTokens}
+                      />
+                    </FormLabel>
+                  </div>
+                </div>
+
+                <p className="mt-4 rounded-lg border border-[#e2ded6] bg-[#f6f4ef] p-3 text-sm leading-6 text-neutral-700">
+                  Production version would call model APIs through a backend job, store generated responses, randomize
+                  display order, and keep model identity hidden from annotators.
+                </p>
+              </div>
+            ) : null}
+          </Panel>
         </form>
 
         <aside className="space-y-4">
@@ -363,8 +566,15 @@ export function ProjectConfiguration() {
             <h2 className="text-base font-semibold text-neutral-950">Generated UI schema</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <SchemaRow label="Objective" value={objectiveLabels[project.objective]} />
-              <SchemaRow label="Prompt source" value="Seeded prompt pack" />
+              <SchemaRow label="Prompt source" value={formatPromptSource(project.promptSource.type)} />
               <SchemaRow label="Seed pack" value={selectedSeedPack.name} />
+              <SchemaRow label="Response source" value={responseSourceLabels[project.responseSource.type]} />
+              {project.responseSource.type === 'model_api_simulated' ? (
+                <SchemaRow
+                  label="Model pair"
+                  value={`${project.responseSource.modelAProvider} / ${project.responseSource.modelAVersion} vs ${project.responseSource.modelBProvider} / ${project.responseSource.modelBVersion}`}
+                />
+              ) : null}
               <SchemaRow label="Task type" value={taskTypeLabels[project.taskType]} />
               <SchemaRow label="Turn format" value={turnFormatLabels[project.turnFormat]} />
               <SchemaRow label="Tie allowed" value={project.allowTie ? 'Yes' : 'No'} />
@@ -488,4 +698,8 @@ function formatList(values: string[], limit: number) {
   }
 
   return `${values.slice(0, limit).join(', ')} +${values.length - limit} more`
+}
+
+function formatPromptSource(source: PromptSourceType) {
+  return promptSourceOptions.find((option) => option.value === source)?.label ?? source.replaceAll('_', ' ')
 }

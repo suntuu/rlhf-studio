@@ -145,26 +145,53 @@ export function PreviewAnnotator() {
           </div>
         </Panel>
 
-        <Panel className="h-fit p-5">
-          <h2 className="text-base font-semibold text-neutral-950">Output schema preview</h2>
-          <p className="mt-2 text-sm leading-6 text-neutral-600">
-            Saved records include prompt, responses, choice, optional labels, rationale, annotator ID, timestamp,
-            prompt metadata, seed pack lineage, and hidden model metadata.
-          </p>
-          <div className="mt-4 space-y-2 text-sm">
-            <SchemaChip label="prompt_source" />
-            <SchemaChip label="seed_pack" />
-            <SchemaChip label="domain" />
-            <SchemaChip label="difficulty" />
-            <SchemaChip label="intent_category" />
-            <SchemaChip label="risk_category" />
-            <SchemaChip label="chosen_response" />
-            <SchemaChip label="chosen_model" />
-            <SchemaChip label="config_version" />
-            <SchemaChip label="response_a_model" />
-            <SchemaChip label="response_b_model" />
-          </div>
-        </Panel>
+        <aside className="space-y-4">
+          <Panel className="h-fit p-5">
+            <h2 className="text-base font-semibold text-neutral-950">Data Sources</h2>
+            <div className="mt-4 space-y-4 text-sm">
+              <div>
+                <p className="font-semibold text-neutral-800">Prompt Source</p>
+                <p className="mt-1 text-neutral-600">Seeded prompt pack: {project.promptSource.seedPackId}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-neutral-800">Response Source</p>
+                <p className="mt-1 text-neutral-600">
+                  {project.responseSource.type === 'model_api_simulated'
+                    ? 'Model API comparison — simulated'
+                    : 'Seeded response pairs'}
+                </p>
+                {project.responseSource.type === 'model_api_simulated' ? (
+                  <div className="mt-2 space-y-1 text-neutral-600">
+                    <p>Model A: {project.responseSource.modelAProvider} / {project.responseSource.modelAVersion}</p>
+                    <p>Model B: {project.responseSource.modelBProvider} / {project.responseSource.modelBVersion}</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </Panel>
+
+          <Panel className="h-fit p-5">
+            <h2 className="text-base font-semibold text-neutral-950">Output schema preview</h2>
+            <p className="mt-2 text-sm leading-6 text-neutral-600">
+              Saved records include prompt, responses, choice, optional labels, rationale, annotator ID, timestamp,
+              prompt lineage, response lineage, and hidden model metadata.
+            </p>
+            <div className="mt-4 space-y-2 text-sm">
+              <SchemaChip label="prompt_source_type" />
+              <SchemaChip label="response_source_type" />
+              <SchemaChip label="seed_pack" />
+              <SchemaChip label="response_a_provider" />
+              <SchemaChip label="response_a_model" />
+              <SchemaChip label="response_b_provider" />
+              <SchemaChip label="response_b_model" />
+              <SchemaChip label="generation_mode" />
+              <SchemaChip label="domain" />
+              <SchemaChip label="difficulty" />
+              <SchemaChip label="intent_category" />
+              <SchemaChip label="risk_category" />
+            </div>
+          </Panel>
+        </aside>
       </div>
     </>
   )

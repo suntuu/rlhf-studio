@@ -1,0 +1,50 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: RLHF Studio
+        - paragraph [ref=e12]: Data collection ops
+    - navigation "Main navigation" [ref=e13]:
+      - paragraph [ref=e14]: Workspace
+      - link "Projects" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img [ref=e16]
+        - text: Projects
+      - link "Templates" [ref=e19] [cursor=pointer]:
+        - /url: /templates
+        - img [ref=e20]
+        - text: Templates
+      - link "Results" [ref=e24] [cursor=pointer]:
+        - /url: /results
+        - img [ref=e25]
+        - text: Results
+      - link "Settings" [ref=e27] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e28]
+        - text: Settings
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: Prototype scope
+      - paragraph [ref=e34]: This prototype collects RLHF training data only. Model training is outside scope.
+  - generic [ref=e35]:
+    - banner [ref=e36]:
+      - generic [ref=e38]:
+        - paragraph [ref=e39]: RLHF Studio
+        - paragraph [ref=e40]: Live annotation task
+      - link "Create Project" [ref=e42] [cursor=pointer]:
+        - /url: /projects/new
+    - main [ref=e43]:
+      - generic [ref=e375]:
+        - heading "Annotation submitted" [level=1] [ref=e427]
+        - paragraph [ref=e377]: The structured preference record was saved locally and is ready for review or export.
+      - generic [ref=e428]:
+        - img [ref=e429]
+        - heading "Annotation submitted" [level=2] [ref=e432]
+        - paragraph [ref=e433]: Record ID annotation-4f0f9122-16d4-47cd-8aca-97c04101bcb8 is stored in localStorage.
+        - paragraph [ref=e434]: "Next up: Task 2 of 6"
+        - generic [ref=e435]:
+          - button "Continue to next task" [ref=e436] [cursor=pointer]:
+            - text: Continue to next task
+            - img [ref=e437]
+          - link "View results" [ref=e439] [cursor=pointer]:
+            - /url: /projects/project-5219576e-bdb3-4554-80f9-371039c30bf7/results

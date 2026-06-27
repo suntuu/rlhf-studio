@@ -6,7 +6,7 @@ RLHF Studio is a configurable RLHF training-data collection prototype. Admins co
 
 This product is for training-data creation only. It does not train models, fine-tune models, manage reward models, or run training pipelines.
 
-v1 also includes seeded prompt packs, prompt metadata, coverage previews, batch readiness checks, and a lightweight quality review simulation with agreement scoring, a review queue, and reviewer adjudication saved in localStorage.
+v1 also includes separate Prompt Source and Response Source configuration, seeded prompt packs, simulated model API comparison metadata, coverage previews, batch readiness checks, and a lightweight quality review simulation with agreement scoring, a review queue, and reviewer adjudication saved in localStorage.
 
 ## Live Demo
 
@@ -17,7 +17,9 @@ Live URL: https://rlhf-studio-nu.vercel.app/
 - Dashboard for RLHF data-collection projects
 - Task configuration screen
 - Methodology presets
+- Separate Prompt Source and Response Source sections
 - Seeded prompt packs for helpfulness, safety, accuracy, and mixed evaluation
+- Model API comparison setup simulated in v1
 - Prompt metadata and batch coverage preview
 - Prompt batch readiness checks
 - Dynamic annotator preview generated from configuration
@@ -27,7 +29,7 @@ Live URL: https://rlhf-studio-nu.vercel.app/
 - Results table and detail view
 - Quality review queue with agreement scoring
 - Reviewer adjudication modal saved to localStorage
-- Export lineage fields for prompt source, seed pack, domain, difficulty, intent category, and risk category
+- Export lineage fields for prompt source, response source, seed pack, provider/model metadata, domain, difficulty, intent category, and risk category
 - JSONL export
 - CSV export
 
@@ -36,7 +38,7 @@ Live URL: https://rlhf-studio-nu.vercel.app/
 1. Open dashboard.
 2. Create or configure a helpfulness project.
 3. Select Meta-style helpfulness comparison.
-4. Review the selected seeded prompt pack, coverage summary, and batch checks.
+4. Review Prompt Source, Response Source, the selected seeded prompt pack, coverage summary, and batch checks.
 5. Preview generated annotator UI.
 6. Submit annotations across the selected task batch.
 7. Open results and review agreement scores.
@@ -63,6 +65,8 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 - Configuration-driven pairwise annotation
 - Helpfulness and safety presets
 - Seeded prompt packs and selectable task batches
+- Prompt Source and Response Source separation
+- Simulated Model API comparison configuration
 - Prompt metadata and coverage preview
 - Prompt batch readiness checks
 - Dynamic preview
@@ -79,7 +83,10 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 - Reward model training
 - Fine-tuning
 - Live model generation
+- Real model API calls in v1
+- API keys in v1
 - Uploaded prompt sources in v1
+- Uploaded response pair sources in v1
 - Authentication
 - Enterprise roles
 - Backend database in v1
@@ -87,8 +94,8 @@ Full product specification is available in [PRODUCT_SPEC.md](PRODUCT_SPEC.md).
 ## Roadmap
 
 - P1: data quality — gold tasks, stronger reviewer workflows, annotator analytics
-- P2: operational scale — uploaded JSONL/CSV prompt sources, annotator-created prompts, task queues, assignment
-- P3: enterprise readiness — backend, RBAC, audit logs, integrations, live response source integrations
+- P2: operational scale — uploaded JSONL/CSV prompt sources, uploaded response pairs, annotator-created prompts, task queues, assignment
+- P3: enterprise readiness — backend, RBAC, audit logs, integrations, real model API generation jobs
 
 ## Build Notes
 

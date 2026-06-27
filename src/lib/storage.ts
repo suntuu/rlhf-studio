@@ -1,10 +1,26 @@
-import type { AnnotationResult, ProjectConfig, ReviewerDecision } from '../types'
+import type {
+  AnnotationResult,
+  GenerationMode,
+  ModelProvider,
+  ProjectConfig,
+  PromptSourceConfig,
+  RoadmapPromptSourceType,
+  ResponseSourceConfig,
+  ReviewerDecision,
+} from '../types'
+import { defaultResponseSource } from '../data/demoData'
 import { getDefaultSeedPackIdForPreset, getSeedPackById } from '../data/seedTasks'
 
 const projectsKey = 'rlhf-studio.projects.v2'
 const annotationsKey = 'rlhf-studio.annotations.v2'
 const reviewDecisionsKey = 'rlhf-studio.review-decisions.v2'
 const taskProgressKey = 'rlhf-studio.task-progress.v1'
+const roadmapPromptSourceTypes: RoadmapPromptSourceType[] = [
+  'upload_csv_jsonl',
+  'client_system_api',
+  'annotator_created',
+  'synthetic_generation',
+]
 
 function canUseStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -141,30 +157,50 @@ export function clearWorkspaceData() {
   writeJson(taskProgressKey, {})
 }
 
-function normalizeProject(project: ProjectConfig): ProjectConfig {
+type LegacyProjectConfig = Partial<ProjectConfig> & {
+  selectedSeedPackId?: string
+  promptSource?: ProjectConfig['promptSource'] | string
+  responseSource?: Partial<ResponseSourceConfig>
+}
+
+function normalizeProject(project: LegacyProjectConfig): ProjectConfig {
   const methodologyPreset = project.methodologyPreset ?? 'meta_helpfulness'
+  const promptSource = normalizePromptSource(project, methodologyPreset)
   const seedPack = getSeedPackById(
-    project.selectedSeedPackId || getDefaultSeedPackIdForPreset(methodologyPreset),
+    promptSource.seedPackId || getDefaultSeedPackIdForPreset(methodologyPreset),
   )
   const firstTask = seedPack.tasks[0]
 
   return {
     ...project,
+    id: project.id ?? `project-${crypto.randomUUID()}`,
+    name: project.name ?? '',
+    description: project.description ?? '',
+    status: project.status ?? 'draft',
     methodologyPreset,
-    promptSource: 'seeded_prompt_pack',
-    selectedSeedPackId: seedPack.id,
+    objective: project.objective ?? 'helpfulness',
+    promptSource: {
+      ...promptSource,
+      seedPackId: seedPack.id,
+    },
+    responseSource: normalizeResponseSource(project.responseSource),
+    taskType: project.taskType ?? 'pairwise',
+    turnFormat: project.turnFormat ?? 'single_turn',
     requiredFields: {
       preferenceStrength: project.requiredFields?.preferenceStrength ?? true,
       rationale: project.requiredFields?.rationale ?? true,
       safetyLabels: project.requiredFields?.safetyLabels ?? false,
       confidence: project.requiredFields?.confidence ?? true,
     },
+    allowTie: project.allowTie ?? true,
     annotationsPerTask: project.annotationsPerTask || 1,
     samplePrompt: firstTask.prompt,
     responseA: firstTask.response_a,
     responseB: firstTask.response_b,
     responseAModel: firstTask.response_a_model,
     responseBModel: firstTask.response_b_model,
+    createdAt: project.createdAt ?? new Date().toISOString(),
+    updatedAt: project.updatedAt ?? new Date().toISOString(),
     configVersion: project.configVersion || 1,
   }
 }
@@ -172,11 +208,67 @@ function normalizeProject(project: ProjectConfig): ProjectConfig {
 function normalizeAnnotation(record: AnnotationResult): AnnotationResult {
   return {
     ...record,
+    prompt_source_type: record.prompt_source_type ?? record.prompt_source ?? 'legacy_configured_task',
+    response_source_type: record.response_source_type ?? 'seeded_pairs',
     prompt_source: record.prompt_source ?? 'legacy_configured_task',
     seed_pack: record.seed_pack ?? 'legacy_configured_task',
     domain: record.domain ?? 'configured',
     difficulty: record.difficulty ?? 'medium',
     intent_category: record.intent_category ?? record.objective ?? 'configured',
     risk_category: record.risk_category ?? (record.objective === 'safety' ? 'safety' : 'none'),
+    response_a_provider: record.response_a_provider ?? 'Custom',
+    response_b_provider: record.response_b_provider ?? 'Custom',
+    generation_mode: record.generation_mode ?? 'batch_before_annotation',
   }
+}
+
+function normalizePromptSource(
+  project: LegacyProjectConfig,
+  methodologyPreset: ProjectConfig['methodologyPreset'],
+): PromptSourceConfig {
+  if (typeof project.promptSource === 'object' && project.promptSource) {
+    return {
+      type: project.promptSource.type ?? 'seeded_prompt_pack',
+      seedPackId:
+        project.promptSource.seedPackId ??
+        project.selectedSeedPackId ??
+        getDefaultSeedPackIdForPreset(methodologyPreset),
+      roadmapSourceType: project.promptSource.roadmapSourceType,
+    }
+  }
+
+  const roadmapSourceType = isRoadmapPromptSourceType(project.promptSource) ? project.promptSource : undefined
+
+  return {
+    type: 'seeded_prompt_pack',
+    seedPackId: project.selectedSeedPackId ?? getDefaultSeedPackIdForPreset(methodologyPreset),
+    roadmapSourceType,
+  }
+}
+
+function isRoadmapPromptSourceType(value: unknown): value is RoadmapPromptSourceType {
+  return typeof value === 'string' && roadmapPromptSourceTypes.includes(value as RoadmapPromptSourceType)
+}
+
+function normalizeResponseSource(source: Partial<ResponseSourceConfig> | undefined): ResponseSourceConfig {
+  return {
+    ...defaultResponseSource,
+    ...source,
+    type: source?.type ?? defaultResponseSource.type,
+    modelAProvider: normalizeProvider(source?.modelAProvider, defaultResponseSource.modelAProvider),
+    modelBProvider: normalizeProvider(source?.modelBProvider, defaultResponseSource.modelBProvider),
+    modelAVersion: source?.modelAVersion?.trim() || defaultResponseSource.modelAVersion,
+    modelBVersion: source?.modelBVersion?.trim() || defaultResponseSource.modelBVersion,
+    generationMode: normalizeGenerationMode(source?.generationMode, defaultResponseSource.generationMode),
+    temperature: Number.isFinite(source?.temperature) ? Number(source?.temperature) : defaultResponseSource.temperature,
+    maxTokens: Number.isFinite(source?.maxTokens) ? Number(source?.maxTokens) : defaultResponseSource.maxTokens,
+  }
+}
+
+function normalizeProvider(value: ModelProvider | undefined, fallback: ModelProvider) {
+  return value ?? fallback
+}
+
+function normalizeGenerationMode(value: GenerationMode | undefined, fallback: GenerationMode) {
+  return value ?? fallback
 }

@@ -447,12 +447,28 @@ function QualityReviewDrawer({
 
           <DetailBlock label="Prompt" value={summary.prompt} />
 
+          <h3 className="text-sm font-semibold text-neutral-950">Prompt lineage</h3>
           <div className="grid gap-4 lg:grid-cols-3">
-            <DetailBlock label="Prompt source" value={formatValue(summary.prompt_source)} />
+            <DetailBlock label="Prompt source type" value={formatValue(summary.prompt_source_type)} />
             <DetailBlock label="Seed pack" value={summary.seed_pack} />
+            <DetailBlock label="Domain" value={summary.domain} />
             <DetailBlock label="Difficulty" value={formatValue(summary.difficulty)} />
             <DetailBlock label="Intent category" value={formatValue(summary.intent_category)} />
             <DetailBlock label="Risk category" value={formatValue(summary.risk_category)} />
+          </div>
+
+          <h3 className="text-sm font-semibold text-neutral-950">Response lineage</h3>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <DetailBlock label="Response source type" value={formatValue(summary.response_source_type)} />
+            <DetailBlock
+              label="Response A model/provider"
+              value={`${summary.response_a_provider} / ${summary.response_a_model}`}
+            />
+            <DetailBlock
+              label="Response B model/provider"
+              value={`${summary.response_b_provider} / ${summary.response_b_model}`}
+            />
+            <DetailBlock label="Generation mode" value={formatValue(summary.generation_mode)} />
             <DetailBlock label="Config version" value={`v${summary.annotations[0]?.config_version ?? 1}`} />
           </div>
 
@@ -576,21 +592,37 @@ function DetailDrawer({ record, onClose }: { record: AnnotationResult; onClose: 
             <DetailBlock label="Response A" value={record.response_a} />
             <DetailBlock label="Response B" value={record.response_b} />
           </div>
+          <h3 className="text-sm font-semibold text-neutral-950">Prompt lineage</h3>
           <div className="grid gap-4 lg:grid-cols-2">
-            <DetailBlock label="Prompt source" value={formatValue(record.prompt_source)} />
+            <DetailBlock label="Prompt source type" value={formatValue(record.prompt_source_type)} />
             <DetailBlock label="Seed pack" value={record.seed_pack} />
             <DetailBlock label="Domain" value={record.domain} />
             <DetailBlock label="Difficulty" value={formatValue(record.difficulty)} />
             <DetailBlock label="Intent category" value={formatValue(record.intent_category)} />
             <DetailBlock label="Risk category" value={formatValue(record.risk_category)} />
+          </div>
+          <h3 className="text-sm font-semibold text-neutral-950">Response lineage</h3>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <DetailBlock label="Response source type" value={formatValue(record.response_source_type)} />
+            <DetailBlock
+              label="Response A model/provider"
+              value={`${record.response_a_provider} / ${record.response_a_model}`}
+            />
+            <DetailBlock
+              label="Response B model/provider"
+              value={`${record.response_b_provider} / ${record.response_b_model}`}
+            />
+            <DetailBlock label="Generation mode" value={formatValue(record.generation_mode)} />
+            <DetailBlock label="Config version" value={`v${record.config_version}`} />
+          </div>
+          <h3 className="text-sm font-semibold text-neutral-950">Judgment metadata</h3>
+          <div className="grid gap-4 lg:grid-cols-2">
             <DetailBlock label="Chosen response" value={formatChoice(record.chosen_response)} />
             <DetailBlock label="Chosen model" value={record.chosen_model ?? 'Tie / unsure'} />
             <DetailBlock label="Preference strength" value={record.preference_strength ?? 'Not captured'} />
             <DetailBlock label="Safety label" value={record.safety_label ?? 'Not captured'} />
             <DetailBlock label="Confidence" value={record.confidence ?? 'Not captured'} />
             <DetailBlock label="Rationale" value={record.rationale ?? 'Not captured'} />
-            <DetailBlock label="Model metadata" value={`A: ${record.response_a_model}\nB: ${record.response_b_model}`} />
-            <DetailBlock label="Config version" value={`v${record.config_version}`} />
             <DetailBlock label="Submitted at" value={formatDate(record.submitted_at)} />
             <DetailBlock label="Task ID" value={record.task_id} />
             <DetailBlock label="Project ID" value={record.project_id} />

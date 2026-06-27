@@ -1,0 +1,177 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: RLHF Studio
+        - paragraph [ref=e12]: Data collection ops
+    - navigation "Main navigation" [ref=e13]:
+      - paragraph [ref=e14]: Workspace
+      - link "Projects" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img [ref=e16]
+        - text: Projects
+      - link "Templates" [ref=e19] [cursor=pointer]:
+        - /url: /templates
+        - img [ref=e20]
+        - text: Templates
+      - link "Results" [ref=e24] [cursor=pointer]:
+        - /url: /results
+        - img [ref=e25]
+        - text: Results
+      - link "Settings" [ref=e27] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e28]
+        - text: Settings
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: Prototype scope
+      - paragraph [ref=e34]: This prototype collects RLHF training data only. Model training is outside scope.
+  - generic [ref=e35]:
+    - banner [ref=e36]:
+      - generic [ref=e38]:
+        - paragraph [ref=e39]: RLHF Studio
+        - paragraph [ref=e40]: Structured feedback records
+      - link "Create Project" [ref=e42] [cursor=pointer]:
+        - /url: /projects/new
+    - main [ref=e43]:
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - heading "Untitled RLHF Project results" [level=1] [ref=e62]
+          - paragraph [ref=e63]: Quality review helps prevent noisy human feedback from entering the training dataset.
+        - generic [ref=e64]:
+          - link "Annotate" [ref=e65] [cursor=pointer]:
+            - /url: /annotate/project-5219576e-bdb3-4554-80f9-371039c30bf7
+          - generic [ref=e66]:
+            - generic [ref=e67]: Export scope
+            - combobox "Export scope" [ref=e68]:
+              - option "Export all records" [selected]
+              - option "Export approved / accepted records only"
+          - button "Export JSONL" [active] [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - text: Export JSONL
+          - button "Export CSV" [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+            - text: Export CSV
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - paragraph [ref=e82]: Completed annotations
+              - generic [ref=e83]: Submitted
+            - paragraph [ref=e85]: "1"
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - paragraph [ref=e88]: Agreement rate
+              - generic [ref=e89]: Average
+            - paragraph [ref=e91]: 100%
+          - generic [ref=e92]:
+            - generic [ref=e93]:
+              - paragraph [ref=e94]: Records ready for export
+              - generic [ref=e95]: Ready
+            - paragraph [ref=e97]: "1"
+          - generic [ref=e98]:
+            - generic [ref=e99]:
+              - paragraph [ref=e100]: Records needing review
+              - generic [ref=e101]: Queue
+            - paragraph [ref=e103]: "0"
+          - generic [ref=e104]:
+            - generic [ref=e105]:
+              - paragraph [ref=e106]: Low-confidence records
+              - generic [ref=e107]: Flagged
+            - paragraph [ref=e109]: "0"
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - heading "Project summary" [level=2] [ref=e113]
+              - paragraph [ref=e114]: No project description.
+            - generic [ref=e115]:
+              - generic [ref=e116]: Helpfulness
+              - generic [ref=e117]: Config v1
+              - generic [ref=e118]: Helpfulness Preference Pack
+              - generic [ref=e119]: 1 annotations collected
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - generic [ref=e123]: Response A chosen
+                - generic [ref=e124]: "0"
+              - paragraph [ref=e126]: 0%
+            - generic [ref=e127]:
+              - generic [ref=e128]:
+                - generic [ref=e129]: Response B chosen
+                - generic [ref=e130]: "1"
+              - paragraph [ref=e133]: 100%
+            - generic [ref=e134]:
+              - generic [ref=e135]:
+                - generic [ref=e136]: Tie / unsure
+                - generic [ref=e137]: "0"
+              - paragraph [ref=e139]: 0%
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - heading "Quality Review Queue" [level=2] [ref=e143]
+              - paragraph [ref=e144]: Review disagreements and low-confidence tasks before exporting the final training dataset.
+            - generic [ref=e145]: 1 ready
+          - table [ref=e147]:
+            - rowgroup [ref=e148]:
+              - row "Task ID Prompt preview Response A votes Response B votes Tie/Unsure votes Agreement Review Status Action" [ref=e149]:
+                - columnheader "Task ID" [ref=e150]
+                - columnheader "Prompt preview" [ref=e151]
+                - columnheader "Response A votes" [ref=e152]
+                - columnheader "Response B votes" [ref=e153]
+                - columnheader "Tie/Unsure votes" [ref=e154]
+                - columnheader "Agreement" [ref=e155]
+                - columnheader "Review Status" [ref=e156]
+                - columnheader "Action" [ref=e157]
+            - rowgroup [ref=e158]:
+              - row "helpfulness_preference_v1_fintech_001 Explain UPI autopay to someone setting up their first recurring subscription. 0 1 0 100% Accepted Review" [ref=e159]:
+                - cell "helpfulness_preference_v1_fintech_001" [ref=e160]
+                - cell "Explain UPI autopay to someone setting up their first recurring subscription." [ref=e161]
+                - cell "0" [ref=e162]
+                - cell "1" [ref=e163]
+                - cell "0" [ref=e164]
+                - cell "100%" [ref=e165]
+                - cell "Accepted" [ref=e166]:
+                  - generic [ref=e167]: Accepted
+                - cell "Review" [ref=e168]:
+                  - button "Review" [ref=e169] [cursor=pointer]:
+                    - img [ref=e170]
+                    - text: Review
+        - generic [ref=e173]:
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - heading "Results table" [level=2] [ref=e176]
+              - paragraph [ref=e177]: Export-ready structured preference records. Click a row to inspect the complete annotation record.
+            - button "Refresh records" [ref=e178] [cursor=pointer]
+          - table [ref=e180]:
+            - rowgroup [ref=e181]:
+              - row "Task ID Prompt preview Domain Difficulty Risk category Seed pack Choice Strength Safety label Confidence Submitted at Detail" [ref=e182]:
+                - columnheader "Task ID" [ref=e183]
+                - columnheader "Prompt preview" [ref=e184]
+                - columnheader "Domain" [ref=e185]
+                - columnheader "Difficulty" [ref=e186]
+                - columnheader "Risk category" [ref=e187]
+                - columnheader "Seed pack" [ref=e188]
+                - columnheader "Choice" [ref=e189]
+                - columnheader "Strength" [ref=e190]
+                - columnheader "Safety label" [ref=e191]
+                - columnheader "Confidence" [ref=e192]
+                - columnheader "Submitted at" [ref=e193]
+                - columnheader "Detail" [ref=e194]
+            - rowgroup [ref=e195]:
+              - row "helpfulness_preference_v1_fintech_001 Explain UPI autopay to someone setting up their first recurring subscription. fintech easy none helpfulness_preference_v1 Response B Better Not captured High 27 Jun 2026, 13:56 View" [ref=e196] [cursor=pointer]:
+                - cell "helpfulness_preference_v1_fintech_001" [ref=e197]
+                - cell "Explain UPI autopay to someone setting up their first recurring subscription." [ref=e198]
+                - cell "fintech" [ref=e199]
+                - cell "easy" [ref=e200]
+                - cell "none" [ref=e201]
+                - cell "helpfulness_preference_v1" [ref=e202]
+                - cell "Response B" [ref=e203]:
+                  - generic [ref=e204]: Response B
+                - cell "Better" [ref=e205]
+                - cell "Not captured" [ref=e206]
+                - cell "High" [ref=e207]
+                - cell "27 Jun 2026, 13:56" [ref=e208]
+                - cell "View" [ref=e209]:
+                  - button "View" [ref=e210]:
+                    - img [ref=e211]
+                    - text: View

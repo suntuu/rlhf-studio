@@ -1,4 +1,4 @@
-import type { MethodologyPreset, Objective, ProjectConfig } from '../types'
+import type { MethodologyPreset, Objective, ProjectConfig, ResponseSourceConfig } from '../types'
 import { getDefaultSeedPackIdForPreset, getSeedPackById } from './seedTasks'
 
 export {
@@ -22,6 +22,17 @@ export const objectiveLabels: Record<Objective, string> = {
   custom: 'Custom',
 }
 
+export const defaultResponseSource: ResponseSourceConfig = {
+  type: 'seeded_pairs',
+  modelAProvider: 'OpenAI',
+  modelAVersion: 'baseline_model_v1',
+  modelBProvider: 'Anthropic',
+  modelBVersion: 'aligned_model_v2',
+  generationMode: 'batch_before_annotation',
+  temperature: 0.7,
+  maxTokens: 512,
+}
+
 export function createBlankProject(preset: MethodologyPreset = 'meta_helpfulness'): ProjectConfig {
   const now = new Date().toISOString()
   const seedPackId = getDefaultSeedPackIdForPreset(preset)
@@ -32,8 +43,11 @@ export function createBlankProject(preset: MethodologyPreset = 'meta_helpfulness
     status: 'draft',
     methodologyPreset: preset,
     objective: 'helpfulness',
-    promptSource: 'seeded_prompt_pack',
-    selectedSeedPackId: seedPackId,
+    promptSource: {
+      type: 'seeded_prompt_pack',
+      seedPackId,
+    },
+    responseSource: defaultResponseSource,
     taskType: 'pairwise',
     turnFormat: 'single_turn',
     requiredFields: {
@@ -66,7 +80,11 @@ export function applyPreset(project: ProjectConfig, preset: MethodologyPreset): 
         ...project,
         methodologyPreset: preset,
         objective: 'helpfulness',
-        promptSource: 'seeded_prompt_pack',
+        promptSource: {
+          type: 'seeded_prompt_pack',
+          seedPackId,
+        },
+        responseSource: project.responseSource ?? defaultResponseSource,
         taskType: 'pairwise',
         turnFormat: 'single_turn',
         requiredFields: {
@@ -87,7 +105,11 @@ export function applyPreset(project: ProjectConfig, preset: MethodologyPreset): 
         ...project,
         methodologyPreset: preset,
         objective: 'safety',
-        promptSource: 'seeded_prompt_pack',
+        promptSource: {
+          type: 'seeded_prompt_pack',
+          seedPackId,
+        },
+        responseSource: project.responseSource ?? defaultResponseSource,
         taskType: 'pairwise',
         turnFormat: 'single_turn',
         requiredFields: {
@@ -107,7 +129,11 @@ export function applyPreset(project: ProjectConfig, preset: MethodologyPreset): 
       ...project,
       methodologyPreset: preset,
       objective: 'custom',
-      promptSource: 'seeded_prompt_pack',
+      promptSource: {
+        type: 'seeded_prompt_pack',
+        seedPackId,
+      },
+      responseSource: project.responseSource ?? defaultResponseSource,
       taskType: 'pairwise',
     },
     seedPackId,
@@ -124,8 +150,12 @@ export function withSeedPackFields(project: ProjectConfig, seedPackId: string): 
 
   return {
     ...project,
-    promptSource: 'seeded_prompt_pack',
-    selectedSeedPackId: seedPack.id,
+    promptSource: {
+      ...project.promptSource,
+      type: 'seeded_prompt_pack',
+      seedPackId: seedPack.id,
+      roadmapSourceType: undefined,
+    },
     samplePrompt: firstTask.prompt,
     responseA: firstTask.response_a,
     responseB: firstTask.response_b,

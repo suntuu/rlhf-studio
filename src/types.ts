@@ -9,7 +9,37 @@ export type TaskType = 'pairwise' | 'rating' | 'rewrite'
 
 export type TurnFormat = 'single_turn' | 'multi_turn'
 
-export type PromptSourceOption = 'seeded_prompt_pack' | 'upload_jsonl_csv' | 'annotator_created'
+export type PromptSourceType =
+  | 'seeded_prompt_pack'
+  | 'upload_csv_jsonl'
+  | 'client_system_api'
+  | 'annotator_created'
+  | 'synthetic_generation'
+
+export type RoadmapPromptSourceType = Exclude<PromptSourceType, 'seeded_prompt_pack'>
+
+export interface PromptSourceConfig {
+  type: PromptSourceType
+  seedPackId: string
+  roadmapSourceType?: RoadmapPromptSourceType
+}
+
+export type ResponseSourceType = 'seeded_pairs' | 'uploaded_pairs' | 'model_api_simulated'
+
+export type ModelProvider = 'OpenAI' | 'Anthropic' | 'Meta' | 'Custom'
+
+export type GenerationMode = 'batch_before_annotation' | 'live_during_annotation'
+
+export interface ResponseSourceConfig {
+  type: ResponseSourceType
+  modelAProvider: ModelProvider
+  modelAVersion: string
+  modelBProvider: ModelProvider
+  modelBVersion: string
+  generationMode: GenerationMode
+  temperature: number
+  maxTokens: number
+}
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
 
@@ -37,8 +67,8 @@ export interface ProjectConfig {
   status: ProjectStatus
   methodologyPreset: MethodologyPreset
   objective: Objective
-  promptSource: PromptSourceOption
-  selectedSeedPackId: string
+  promptSource: PromptSourceConfig
+  responseSource: ResponseSourceConfig
   taskType: TaskType
   turnFormat: TurnFormat
   requiredFields: RequiredFields
@@ -63,6 +93,8 @@ export interface AnnotationResult {
   objective: Objective
   task_type: TaskType
   turn_format: TurnFormat
+  prompt_source_type: PromptSourceType | string
+  response_source_type: ResponseSourceType | string
   prompt_source: string
   seed_pack: string
   domain: string
@@ -72,8 +104,11 @@ export interface AnnotationResult {
   prompt: string
   response_a: string
   response_b: string
+  response_a_provider: ModelProvider | string
   response_a_model: string
+  response_b_provider: ModelProvider | string
   response_b_model: string
+  generation_mode: GenerationMode | string
   chosen_response: ChosenResponse
   chosen_model: string | null
   preference_strength: string | null

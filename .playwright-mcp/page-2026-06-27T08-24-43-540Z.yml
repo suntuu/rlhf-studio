@@ -1,0 +1,291 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: RLHF Studio
+        - paragraph [ref=e12]: Data collection ops
+    - navigation "Main navigation" [ref=e13]:
+      - paragraph [ref=e14]: Workspace
+      - link "Projects" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img [ref=e16]
+        - text: Projects
+      - link "Templates" [ref=e19] [cursor=pointer]:
+        - /url: /templates
+        - img [ref=e20]
+        - text: Templates
+      - link "Results" [ref=e24] [cursor=pointer]:
+        - /url: /results
+        - img [ref=e25]
+        - text: Results
+      - link "Settings" [ref=e27] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e28]
+        - text: Settings
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: Prototype scope
+      - paragraph [ref=e34]: This prototype collects RLHF training data only. Model training is outside scope.
+  - generic [ref=e35]:
+    - banner [ref=e36]:
+      - generic [ref=e38]:
+        - paragraph [ref=e39]: RLHF Studio
+        - paragraph [ref=e40]: RLHF data collection workspace
+      - link "Create Project" [ref=e42] [cursor=pointer]:
+        - /url: /projects/new
+    - main [ref=e43]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "Create project" [level=1] [ref=e46]
+          - paragraph [ref=e47]: Configuration controls the annotator UI and output schema.
+        - generic [ref=e48]:
+          - button "Save Draft" [ref=e49] [cursor=pointer]:
+            - img [ref=e50]
+            - text: Save Draft
+          - button "Preview Annotator Task" [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - text: Preview Annotator Task
+          - button "Publish Project" [ref=e58] [cursor=pointer]:
+            - img [ref=e59]
+            - text: Publish Project
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - heading "Project basics" [level=2] [ref=e67]
+                - paragraph [ref=e68]: This prototype collects RLHF training data only. Model training is outside scope.
+              - generic [ref=e69]: Draft
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - text: Project name
+                - textbox "Project name" [ref=e73]:
+                  - /placeholder: Helpfulness Preference Collection
+              - generic [ref=e74]:
+                - text: Methodology preset
+                - combobox "Methodology preset" [ref=e76]:
+                  - option "Meta-style helpfulness comparison" [selected]
+                  - option "Anthropic-style safety / red-team comparison"
+                  - option "Custom workflow"
+              - generic [ref=e78]:
+                - text: Description
+                - textbox "Description" [ref=e80]:
+                  - /placeholder: Describe the annotation workflow and output dataset.
+          - generic [ref=e81]:
+            - heading "Workflow controls" [level=2] [ref=e82]
+            - paragraph [ref=e83]: Configuration controls the annotator UI and output schema.
+            - generic [ref=e84]:
+              - generic [ref=e85]:
+                - text: Task objective
+                - combobox "Task objective" [ref=e87]:
+                  - option "Helpfulness" [selected]
+                  - option "Safety"
+                  - option "Accuracy"
+                  - option "Custom"
+              - generic [ref=e88]:
+                - text: Turn formatMulti-turn affects copy only in v1.
+                - generic [ref=e90]:
+                  - button "Turn formatMulti-turn affects copy only in v1. Multi-turn" [ref=e91] [cursor=pointer]: Single-turn
+                  - button "Multi-turn" [ref=e92] [cursor=pointer]
+            - generic [ref=e93]:
+              - paragraph [ref=e94]: Task type
+              - generic [ref=e95]:
+                - button "Pairwise comparison Fully supported in v1" [ref=e96] [cursor=pointer]:
+                  - generic [ref=e97]: Pairwise comparison
+                  - generic [ref=e98]: Fully supported in v1
+                - button "Rating Roadmap preview" [disabled] [ref=e99]:
+                  - generic [ref=e100]: Rating
+                  - generic [ref=e101]: Roadmap preview
+                - button "Rewrite Roadmap preview" [disabled] [ref=e102]:
+                  - generic [ref=e103]: Rewrite
+                  - generic [ref=e104]: Roadmap preview
+          - generic [ref=e105]:
+            - heading "Required annotator fields" [level=2] [ref=e106]
+            - generic [ref=e107]:
+              - generic [ref=e108]:
+                - generic [ref=e109]: Preference strength
+                - checkbox "Preference strength" [checked] [ref=e110]
+              - generic [ref=e111]:
+                - generic [ref=e112]: Rationale
+                - checkbox "Rationale" [checked] [ref=e113]
+              - generic [ref=e114]:
+                - generic [ref=e115]: Safety labels
+                - checkbox "Safety labels" [ref=e116]
+              - generic [ref=e117]:
+                - generic [ref=e118]: Confidence
+                - checkbox "Confidence" [checked] [ref=e119]
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e122]: Allow tie / unsure
+                - checkbox "Allow tie / unsure" [checked] [ref=e123]
+              - generic [ref=e124]:
+                - text: Annotations per task
+                - spinbutton "Annotations per task" [ref=e126]: "3"
+          - generic [ref=e127]:
+            - heading "Prompt Source" [level=2] [ref=e128]
+            - paragraph [ref=e129]: Prompt source defines where user prompts/tasks come from before annotation.
+            - paragraph [ref=e130]: Real RLHF projects separate prompt sourcing from response generation. Prompts may come from uploads, client APIs, user logs, or annotators. Responses may come from uploaded pairs or model APIs. V1 simulates this with seeded prompt-response batches.
+            - generic [ref=e131]:
+              - button "Seeded prompt pack Supported in v1" [ref=e132] [cursor=pointer]:
+                - generic [ref=e133]: Seeded prompt pack
+                - generic [ref=e134]: Supported in v1
+              - button "Upload CSV/JSONL Roadmap" [disabled] [ref=e135]:
+                - generic [ref=e136]: Upload CSV/JSONL
+                - generic [ref=e137]: Roadmap
+              - button "Client system API Roadmap" [disabled] [ref=e138]:
+                - generic [ref=e139]: Client system API
+                - generic [ref=e140]: Roadmap
+              - button "Annotator-created prompts Roadmap" [disabled] [ref=e141]:
+                - generic [ref=e142]: Annotator-created prompts
+                - generic [ref=e143]: Roadmap
+              - button "Synthetic prompt generation Roadmap" [disabled] [ref=e144]:
+                - generic [ref=e145]: Synthetic prompt generation
+                - generic [ref=e146]: Roadmap
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - generic [ref=e149]:
+                  - text: Seed pack
+                  - combobox "Seed pack" [ref=e151]:
+                    - option "Helpfulness Preference Pack" [selected]
+                    - option "Safety Review Pack"
+                    - option "Accuracy / Factuality Pack"
+                    - option "Mixed Evaluation Pack"
+                - paragraph [ref=e152]: Six practical preference tasks across fintech, workplace, education, travel, productivity, and support.
+                - generic [ref=e153]:
+                  - paragraph [ref=e154]: Coverage preview
+                  - paragraph [ref=e155]: 6 tasks · 6 domains · 2 easy / 3 medium / 1 hard · baseline_v1 vs aligned_v2
+                  - generic [ref=e156]:
+                    - generic [ref=e157]:
+                      - paragraph [ref=e158]: Total tasks
+                      - paragraph [ref=e159]: "6"
+                    - generic [ref=e160]:
+                      - paragraph [ref=e161]: Domains included
+                      - paragraph [ref=e162]: fintech, workplace, education, travel +2 more
+                    - generic [ref=e163]:
+                      - paragraph [ref=e164]: Difficulty distribution
+                      - paragraph [ref=e165]: 2 easy / 3 medium / 1 hard
+                    - generic [ref=e166]:
+                      - paragraph [ref=e167]: Risk categories included
+                      - paragraph [ref=e168]: none
+                    - generic [ref=e169]:
+                      - paragraph [ref=e170]: Model pairs included
+                      - paragraph [ref=e171]: baseline_v1 vs aligned_v2
+                    - generic [ref=e172]:
+                      - paragraph [ref=e173]: Objective coverage
+                      - paragraph [ref=e174]: helpfulness
+              - generic [ref=e175]:
+                - generic [ref=e176]:
+                  - heading "Prompt batch checks" [level=3] [ref=e177]
+                  - generic [ref=e178]: Prompt batch ready
+                - generic [ref=e179]:
+                  - generic [ref=e180]:
+                    - img [ref=e181]
+                    - generic [ref=e184]: All tasks have prompts
+                  - generic [ref=e185]:
+                    - img [ref=e186]
+                    - generic [ref=e189]: All tasks have Response A and Response B
+                  - generic [ref=e190]:
+                    - img [ref=e191]
+                    - generic [ref=e194]: Model metadata present
+                  - generic [ref=e195]:
+                    - img [ref=e196]
+                    - generic [ref=e199]: No duplicate task IDs
+                  - generic [ref=e200]:
+                    - img [ref=e201]
+                    - generic [ref=e204]: Safety tasks include risk category
+          - generic [ref=e205]:
+            - generic [ref=e206]:
+              - generic [ref=e207]:
+                - heading "Response Source" [level=2] [ref=e208]
+                - paragraph [ref=e209]: Response source defines where Response A and Response B come from for pairwise evaluation.
+              - generic [ref=e258]: Simulated in v1
+            - generic [ref=e210]:
+              - button "Seeded response pairs Supported in v1" [ref=e211] [cursor=pointer]:
+                - generic [ref=e212]: Seeded response pairs
+                - generic [ref=e213]: Supported in v1
+              - button "Uploaded response pairs Roadmap" [disabled] [ref=e214]:
+                - generic [ref=e215]: Uploaded response pairs
+                - generic [ref=e216]: Roadmap
+              - button "Model API comparison Simulated in v1" [active] [ref=e217] [cursor=pointer]:
+                - generic [ref=e218]: Model API comparison
+                - generic [ref=e219]: Simulated in v1
+            - generic [ref=e259]:
+              - generic [ref=e260]:
+                - heading "Model API comparison setup" [level=3] [ref=e261]
+                - generic [ref=e262]: Simulated in v1
+              - generic [ref=e263]:
+                - generic [ref=e264]:
+                  - text: Model A provider
+                  - combobox "Model A provider" [ref=e266]:
+                    - option "OpenAI" [selected]
+                    - option "Anthropic"
+                    - option "Meta"
+                    - option "Custom"
+                - generic [ref=e267]:
+                  - text: Model A version
+                  - textbox "Model A version" [ref=e269]: baseline_model_v1
+                - generic [ref=e270]:
+                  - text: Model B provider
+                  - combobox "Model B provider" [ref=e272]:
+                    - option "OpenAI"
+                    - option "Anthropic" [selected]
+                    - option "Meta"
+                    - option "Custom"
+                - generic [ref=e273]:
+                  - text: Model B version
+                  - textbox "Model B version" [ref=e275]: aligned_model_v2
+                - generic [ref=e276]:
+                  - text: Generation mode
+                  - combobox "Generation mode" [ref=e278]:
+                    - option "Batch before annotation" [selected]
+                    - option "Live during annotation"
+                - generic [ref=e279]:
+                  - generic [ref=e280]:
+                    - text: Temperature
+                    - spinbutton "Temperature" [ref=e282]: "0.7"
+                  - generic [ref=e283]:
+                    - text: Max tokens
+                    - spinbutton "Max tokens" [ref=e285]: "512"
+              - paragraph [ref=e286]: Production version would call model APIs through a backend job, store generated responses, randomize display order, and keep model identity hidden from annotators.
+        - complementary [ref=e220]:
+          - generic [ref=e221]:
+            - heading "Generated UI schema" [level=2] [ref=e222]
+            - generic [ref=e223]:
+              - generic [ref=e224]:
+                - term [ref=e225]: Objective
+                - definition [ref=e226]: Helpfulness
+              - generic [ref=e227]:
+                - term [ref=e228]: Prompt source
+                - definition [ref=e229]: Seeded prompt pack
+              - generic [ref=e230]:
+                - term [ref=e231]: Seed pack
+                - definition [ref=e232]: Helpfulness Preference Pack
+              - generic [ref=e233]:
+                - term [ref=e234]: Response source
+                - definition [ref=e235]: Model API comparison
+              - generic [ref=e287]:
+                - term [ref=e288]: Model pair
+                - definition [ref=e289]: OpenAI / baseline_model_v1 vs Anthropic / aligned_model_v2
+              - generic [ref=e236]:
+                - term [ref=e237]: Task type
+                - definition [ref=e238]: Pairwise comparison
+              - generic [ref=e239]:
+                - term [ref=e240]: Turn format
+                - definition [ref=e241]: Single-turn
+              - generic [ref=e242]:
+                - term [ref=e243]: Tie allowed
+                - definition [ref=e244]: "Yes"
+              - generic [ref=e245]:
+                - term [ref=e246]: Config version
+                - definition [ref=e247]: v1
+          - generic [ref=e248]:
+            - heading "Annotator fields" [level=2] [ref=e249]
+            - generic [ref=e250]:
+              - generic [ref=e251]: Strength
+              - generic [ref=e252]: Rationale
+              - generic [ref=e253]: Confidence
+          - generic [ref=e254]:
+            - button "Preview Annotator Task" [ref=e255] [cursor=pointer]
+            - button "Publish Project" [ref=e256] [cursor=pointer]
+            - link "Back to dashboard" [ref=e257] [cursor=pointer]:
+              - /url: /

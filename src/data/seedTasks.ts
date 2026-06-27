@@ -420,7 +420,7 @@ export function getSeedPackById(seedPackId: string | undefined) {
 }
 
 export function getProjectSeedPack(project: ProjectConfig) {
-  return getSeedPackById(project.selectedSeedPackId || getDefaultSeedPackIdForPreset(project.methodologyPreset))
+  return getSeedPackById(project.promptSource.seedPackId || getDefaultSeedPackIdForPreset(project.methodologyPreset))
 }
 
 export function getProjectTasks(project: ProjectConfig) {

@@ -1,0 +1,96 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: RLHF Studio
+        - paragraph [ref=e12]: Data collection ops
+    - navigation "Main navigation" [ref=e13]:
+      - paragraph [ref=e14]: Workspace
+      - link "Projects" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img [ref=e16]
+        - text: Projects
+      - link "Templates" [ref=e19] [cursor=pointer]:
+        - /url: /templates
+        - img [ref=e20]
+        - text: Templates
+      - link "Results" [ref=e24] [cursor=pointer]:
+        - /url: /results
+        - img [ref=e25]
+        - text: Results
+      - link "Settings" [ref=e27] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e28]
+        - text: Settings
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: Prototype scope
+      - paragraph [ref=e34]: This prototype collects RLHF training data only. Model training is outside scope.
+  - generic [ref=e35]:
+    - banner [ref=e36]:
+      - generic [ref=e38]:
+        - paragraph [ref=e39]: RLHF Studio
+        - paragraph [ref=e40]: Live annotation task
+      - link "Create Project" [ref=e42] [cursor=pointer]:
+        - /url: /projects/new
+    - main [ref=e43]:
+      - generic [ref=e374]:
+        - generic [ref=e375]:
+          - heading "Untitled RLHF Project" [level=1] [ref=e376]
+          - paragraph [ref=e377]: Review the prompt and compare the two candidate responses. Prefer the answer that is clearer, easier to use, and more complete.
+        - generic [ref=e379]: Task 1 of 6
+      - generic [ref=e380]:
+        - generic [ref=e381]:
+          - generic [ref=e382]:
+            - generic [ref=e383]:
+              - generic [ref=e384]: helpfulness
+              - generic [ref=e385]: Helpfulness Preference Pack
+              - generic [ref=e386]: Config v1
+            - heading "Which response is more helpful?" [level=1] [ref=e387]
+            - generic [ref=e388]:
+              - paragraph [ref=e389]: User prompt
+              - paragraph [ref=e390]: Explain UPI autopay to someone setting up their first recurring subscription.
+              - generic [ref=e391]:
+                - generic [ref=e392]: "Domain: fintech"
+                - generic [ref=e393]: "Difficulty: easy"
+                - generic [ref=e394]: "Risk: none"
+                - generic [ref=e395]: "Source: seeded prompt pack"
+          - generic [ref=e396]:
+            - generic [ref=e397]:
+              - paragraph [ref=e398]: Response A
+              - paragraph [ref=e399]: UPI autopay is a mandate system that authorizes recurring debits from a bank account according to a payment schedule.
+            - generic [ref=e400]:
+              - paragraph [ref=e401]: Response B
+              - paragraph [ref=e402]: UPI autopay lets you approve a recurring payment once, such as a monthly subscription, and then the payment can run automatically on schedule. You should still check the amount, frequency, and cancel option before approving it.
+          - generic [ref=e403]:
+            - heading "Choose the better response" [level=2] [ref=e404]
+            - generic [ref=e405]:
+              - button "Response A" [ref=e406] [cursor=pointer]
+              - button "Response B" [active] [ref=e407] [cursor=pointer]
+              - button "Tie / Unsure" [ref=e408] [cursor=pointer]
+        - complementary [ref=e409]:
+          - generic [ref=e410]:
+            - heading "Required feedback" [level=2] [ref=e411]
+            - generic [ref=e412]:
+              - generic [ref=e413]:
+                - text: Preference strength
+                - combobox "Preference strength" [ref=e415]:
+                  - option "Select strength"
+                  - option "Slightly better"
+                  - option "Better" [selected]
+                  - option "Much better"
+              - generic [ref=e416]:
+                - text: Confidence
+                - combobox "Confidence" [ref=e418]:
+                  - option "Select confidence"
+                  - option "Low"
+                  - option "Medium"
+                  - option "High" [selected]
+              - generic [ref=e419]:
+                - text: Rationale
+                - textbox "Rationale" [ref=e421]:
+                  - /placeholder: Explain why this response is preferred.
+          - button "Submit" [disabled] [ref=e422]:
+            - img [ref=e423]
+            - text: Submit
+          - paragraph [ref=e426]: Submit becomes available after the required choice and feedback fields are complete.

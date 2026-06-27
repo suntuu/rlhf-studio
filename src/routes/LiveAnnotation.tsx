@@ -70,11 +70,27 @@ export function LiveAnnotation() {
       return
     }
 
+    const responseAModel =
+      currentProject.responseSource.type === 'model_api_simulated'
+        ? currentProject.responseSource.modelAVersion
+        : task.response_a_model
+    const responseBModel =
+      currentProject.responseSource.type === 'model_api_simulated'
+        ? currentProject.responseSource.modelBVersion
+        : task.response_b_model
+    const responseAProvider =
+      currentProject.responseSource.type === 'model_api_simulated'
+        ? currentProject.responseSource.modelAProvider
+        : 'Custom'
+    const responseBProvider =
+      currentProject.responseSource.type === 'model_api_simulated'
+        ? currentProject.responseSource.modelBProvider
+        : 'Custom'
     const chosenModel =
       chosenResponse === 'response_a'
-        ? task.response_a_model
+        ? responseAModel
         : chosenResponse === 'response_b'
-          ? task.response_b_model
+          ? responseBModel
           : null
 
     const annotation: AnnotationResult = {
@@ -86,6 +102,8 @@ export function LiveAnnotation() {
       objective: currentProject.objective,
       task_type: currentProject.taskType,
       turn_format: currentProject.turnFormat,
+      prompt_source_type: currentProject.promptSource.type,
+      response_source_type: currentProject.responseSource.type,
       prompt_source: task.prompt_source,
       seed_pack: task.seed_pack,
       domain: task.domain,
@@ -95,8 +113,11 @@ export function LiveAnnotation() {
       prompt: task.prompt,
       response_a: task.response_a,
       response_b: task.response_b,
-      response_a_model: task.response_a_model,
-      response_b_model: task.response_b_model,
+      response_a_provider: responseAProvider,
+      response_a_model: responseAModel,
+      response_b_provider: responseBProvider,
+      response_b_model: responseBModel,
+      generation_mode: currentProject.responseSource.generationMode,
       chosen_response: chosenResponse,
       chosen_model: chosenModel,
       preference_strength: currentProject.requiredFields.preferenceStrength ? preferenceStrength : null,
