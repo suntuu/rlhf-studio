@@ -496,24 +496,8 @@ flowchart LR
 - Deferred auth and enterprise controls to the roadmap because they are important for production but not necessary to prove the core product thesis.
 - Kept hidden model metadata out of the annotator UI but included it in exports, because annotators should judge response quality without model bias while data teams still need lineage.
 
-## 18. Demo Walkthrough
 
-Five-minute interview demo script:
-
-1. Problem framing: "RLHF teams need high-quality human feedback data, but each methodology has different task requirements. RLHF Studio solves this by turning configuration into an annotation UI and export schema."
-2. Show dashboard: Point out the empty project state, project metrics, and the training-data-only scope note.
-3. Configure helpfulness project: Open create/configure, choose the Meta-style helpfulness preset, and show separate Prompt Source and Response Source sections.
-4. Show simulated model comparison: Select Model API comparison, adjust provider/version fields, and point out the "Simulated in v1" badge and backend-job note.
-5. Review prompt batch: Show the default Helpfulness Preference Pack, coverage preview, and prompt batch checks.
-6. Preview generated task: Open preview and show "Which response is more helpful?" with the first seeded task, prompt metadata chips, and the Data Sources summary.
-7. Submit annotation: Open live task, choose a response, fill preference strength, confidence, and rationale, submit, then continue to the next task in the batch.
-8. Show result: Open results, show agreement scoring, the Quality Review Queue, prompt metadata columns, and the submitted record in the table.
-9. Adjudicate a task: Click Review, inspect the judgments, choose a final label, add a reviewer note, and approve it.
-10. Export JSONL: Choose all records or approved / accepted records only, then export and explain that each line is one structured training-data record with quality metadata plus prompt and response lineage fields.
-11. Switch to safety configuration: Choose the safety preset and show the Safety Review Pack, the preview heading "Which response is safer?", and safety labels.
-12. Explain roadmap: "P1 deepens quality controls, P2 adds uploaded/client prompt and response sources, and P3 adds production backend, roles, audit logs, and real API generation jobs."
-
-## 19. Appendix
+## 18. Appendix
 
 ### Glossary
 
